@@ -1,0 +1,62 @@
+// Prisma schema for Event Registration & Management System
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Registration {
+  id               String   @id @default(cuid())
+  name             String
+  institutionName  String
+  academicLevel    String   // "school" | "college" | "university"
+  academicValue    String   // e.g. "Class 8", "1st Year", "3rd Semester"
+  tShirtSize       String   // "S" | "M" | "L" | "XL" | "XXL" | "3XL"
+  bkashNumber      String
+  transactionId    String
+  phoneNumber      String
+  whatsappNumber   String
+  presentAddress   String
+  permanentAddress String
+  status           String   @default("pending") // "pending" | "accepted" | "rejected"
+  idNo             String?  // "RD001", "RD002", ... (set on accept)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status])
+  @@index([phoneNumber])
+  @@index([idNo])
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  adminId   String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([expiresAt])
+}
+
+model SmsLog {
+  id           String   @id @default(cuid())
+  to           String
+  message      String
+  registrationId String?
+  status       String   @default("logged") // "logged" | "sent" | "failed"
+  createdAt    DateTime @default(now())
+
+  @@index([registrationId])
+}
