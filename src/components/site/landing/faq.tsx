@@ -78,7 +78,7 @@ const faqs: FaqItem[] = [
       <>
         Yes! All confirmed (accepted) participants receive a free official{" "}
         <span className="font-semibold text-foreground">
-          Run Against Drugs 2025
+          Run Against Drugs 2026
         </span>{" "}
         event T-shirt. Make sure to select the correct size (S, M, L, XL, XXL,
         or 3XL) in the registration form.

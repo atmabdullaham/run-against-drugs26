@@ -6,16 +6,20 @@ import { Menu, X, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navigate } from "@/lib/nav";
 import { EVENT_CONFIG } from "@/lib/constants";
+import { useViewRouter } from "@/hooks/use-view-router";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { view } = useViewRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const isNavbarScrolled = scrolled || view !== "home";
 
   const navLinks = [
     { label: "Home", view: "home" as const, hash: "hero" },
@@ -44,7 +48,7 @@ export function Navbar() {
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
+          isNavbarScrolled
             ? "bg-white/90 backdrop-blur-md shadow-lg shadow-navy/5"
             : "bg-transparent"
         }`}
@@ -61,13 +65,17 @@ export function Navbar() {
               </div>
               <div className="text-left">
                 <div
-                  className={`font-bold text-sm sm:text-base leading-tight ${
-                    scrolled ? "text-navy" : "text-navy"
+                  className={`font-bold text-sm sm:text-base leading-tight transition-colors duration-300 ${
+                    isNavbarScrolled ? "text-navy" : "text-white"
                   }`}
                 >
                   {EVENT_CONFIG.name}
                 </div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground leading-tight">
+                <div
+                  className={`text-[10px] sm:text-xs leading-tight transition-colors duration-300 ${
+                    isNavbarScrolled ? "text-muted-foreground" : "text-white/60"
+                  }`}
+                >
                   {EVENT_CONFIG.tagline}
                 </div>
               </div>
@@ -79,7 +87,11 @@ export function Navbar() {
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link.view, link.hash)}
-                  className="px-4 py-2 text-sm font-medium text-navy/80 hover:text-navy hover:bg-accent/50 rounded-lg transition-colors"
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
+                    isNavbarScrolled
+                      ? "text-navy/80 hover:text-navy hover:bg-accent/50"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  }`}
                 >
                   {link.label}
                 </button>
@@ -91,7 +103,11 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 onClick={() => navigate("my-registration")}
-                className="text-navy hover:bg-accent/50"
+                className={`transition-all duration-300 ${
+                  isNavbarScrolled
+                    ? "text-navy hover:bg-accent/50"
+                    : "text-white hover:bg-white/10 hover:text-white"
+                }`}
               >
                 My Registration
               </Button>
@@ -106,7 +122,9 @@ export function Navbar() {
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden p-2 text-navy"
+              className={`lg:hidden p-2 transition-colors duration-300 ${
+                isNavbarScrolled ? "text-navy" : "text-white"
+              }`}
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

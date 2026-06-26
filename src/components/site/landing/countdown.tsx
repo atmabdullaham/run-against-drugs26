@@ -46,7 +46,7 @@ function pad(n: number): string {
 
 export function Countdown() {
   const target = React.useMemo(
-    () => new Date(EVENT_CONFIG.eventDate).getTime(),
+    () => new Date(EVENT_CONFIG.registrationDeadline).getTime(),
     []
   );
   const [timeLeft, setTimeLeft] = React.useState<TimeLeft>(() =>
@@ -108,7 +108,7 @@ export function Countdown() {
             variants={itemVariants}
             className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl"
           >
-            {eventStarted ? "Event Has Started!" : "Event Starts In"}
+            {eventStarted ? "Registration Has Closed!" : "Registration Closes In"}
           </motion.h2>
 
           <motion.p
@@ -116,8 +116,8 @@ export function Countdown() {
             className="mt-3 max-w-xl text-pretty text-sm text-white/80 sm:text-base"
           >
             {eventStarted
-              ? "The Run Against Drugs 2025 marathon has officially kicked off. Head to the venue and be part of the movement!"
-              : "Don&apos;t miss your chance to be part of the largest youth marathon for a drug-free Bangladesh."}
+              ? "Registration for the Run Against Drugs 2026 is now closed. Thank you to everyone who registered! You can check your registration status on the 'My Registration' page."
+              : "Don’t miss your chance to secure your slot, event T-shirt, and snacks for the Run Against Drugs 2026."}
           </motion.p>
 
           {eventStarted ? (
@@ -127,7 +127,7 @@ export function Countdown() {
             >
               <Flag className="size-6 text-[#ffa500]" />
               <span className="text-lg font-semibold">
-                The marathon is live — join us at {EVENT_CONFIG.location}!
+                Registration is closed — stay tuned for updates!
               </span>
             </motion.div>
           ) : (

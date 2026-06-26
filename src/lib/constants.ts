@@ -2,20 +2,22 @@
 // Customize these values for your event
 
 export const EVENT_CONFIG = {
-  name: "Run Against Drugs 2025",
+  name: "Run Against Drugs 2026",
   tagline: "Youth Against Drugs",
-  subtitle: "A Marathon for a Drug-Free Bangladesh",
+  subtitle: "A 3 KM Run for a Drug-Free Bangladesh",
   // Event date in Asia/Dhaka timezone (ISO string)
-  eventDate: "2026-12-16T08:00:00+06:00",
-  location: "Suhrawardy Udyan, Dhaka",
-  registrationFee: 200,
+  eventDate: "2026-06-30T08:00:00+06:00",
+  // Registration deadline in Asia/Dhaka timezone (ISO string)
+  registrationDeadline: "2026-06-28T23:59:59+06:00",
+  location: "Chawkbazar (Gulzar Mor), Chittagong",
+  registrationFee: 100,
   bkashNumber: "01859902430",
   contactPhone: "01859902430",
   // WhatsApp group link - shown only when registration is accepted
   whatsappGroupLink: "https://chat.whatsapp.com/your-group-invite-code",
   // SMS message template - {idNo} and {name} are replaced
   smsTemplate:
-    "Assalamu Alaikum {name}! Your registration for Run Against Drugs 2025 is CONFIRMED. Your ID No: {idNo}. Please join the WhatsApp group for updates. Thank you.",
+    "Assalamu Alaikum {name}! Your registration for Run Against Drugs 2026 is CONFIRMED. Your ID No: {idNo}. Please join the WhatsApp group for updates. Thank you.",
 } as const;
 
 // Academic level options for registration form

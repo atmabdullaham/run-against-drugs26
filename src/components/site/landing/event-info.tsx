@@ -49,24 +49,24 @@ const infoItems: InfoItem[] = [
   {
     icon: CalendarDays,
     title: "Date & Time",
-    value: "December 16, 2026",
-    hint: "8:00 AM (Bangladesh Time)",
+    value: "June 30, 2026",
+    hint: "Deadline: June 28, 2026 (11:59 PM)",
     iconClass: "text-[#1e90ff]",
     badgeClass: "bg-gradient-sky text-white",
   },
   {
     icon: MapPin,
     title: "Location",
-    value: EVENT_CONFIG.location,
-    hint: "Starting point near the main gate",
+    value: "Chawkbazar (Gulzar Mor)",
+    hint: "Chittagong",
     iconClass: "text-[#dc143c]",
     badgeClass: "bg-gradient-red text-white",
   },
   {
     icon: Route,
     title: "Distance",
-    value: "5 KM Marathon",
-    hint: "All fitness levels welcome",
+    value: "3 KM Run",
+    hint: "For male students only",
     iconClass: "text-[#228b22]",
     badgeClass: "bg-[#228b22] text-white",
   },
@@ -74,7 +74,7 @@ const infoItems: InfoItem[] = [
     icon: Banknote,
     title: "Registration Fee",
     value: `${EVENT_CONFIG.registrationFee} BDT`,
-    hint: "Includes event T-shirt",
+    hint: "Includes T-shirt & snacks",
     iconClass: "text-[#ffa500]",
     badgeClass: "bg-gradient-orange text-white",
   },
@@ -82,7 +82,7 @@ const infoItems: InfoItem[] = [
     icon: Smartphone,
     title: "bKash Number",
     value: EVENT_CONFIG.bkashNumber,
-    hint: "Send Money / Payment",
+    hint: "Send Money (Personal)",
     iconClass: "text-[#173083]",
     badgeClass: "bg-gradient-navy text-white",
   },
@@ -139,7 +139,7 @@ export function EventInfo() {
           </h2>
           <p className="mt-3 text-pretty text-muted-foreground">
             Date, location, distance, fees and a step-by-step guide to register
-            for the Run Against Drugs 2025 marathon.
+            for the Run Against Drugs 2026 run.
           </p>
         </motion.div>
 

@@ -94,9 +94,14 @@ export function Footer() {
             Register Now
           </Button>
         </div>
-        <p className="text-center text-xs text-white/40 mt-4 flex items-center justify-center gap-1">
-          Made with <Heart className="w-3 h-3 text-brand-red fill-brand-red" /> for a drug-free Bangladesh
-        </p>
+        <div className="text-center text-xs text-white/40 mt-4 flex flex-col items-center justify-center gap-1">
+          <p className="flex items-center gap-1 justify-center">
+            Made with <Heart className="w-3 h-3 text-brand-red fill-brand-red" /> for a drug-free Bangladesh
+          </p>
+          <p className="mt-1 font-medium text-white/60">
+            Organized by Bangladesh Islami Chhatrashibir, Chittagong City North (চট্টগ্রাম মহানগর উত্তর)
+          </p>
+        </div>
       </div>
     </footer>
   );

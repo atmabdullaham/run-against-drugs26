@@ -39,8 +39,8 @@ const itemVariants: Variants = {
 };
 
 const stats = [
-  { icon: Users, label: "Participants", value: "500+" },
-  { icon: Route, label: "Marathon", value: "5 KM" },
+  { icon: Users, label: "Participants", value: "" },
+  { icon: Route, label: "Marathon", value: "3 KM" },
   { icon: ShieldCheck, label: "Pledge", value: "Drug-Free" },
 ];
 
@@ -53,7 +53,7 @@ function formatEventDate(iso: string): string {
       day: "numeric",
     });
   } catch {
-    return "December 16, 2026";
+    return "June 30, 2026";
   }
 }
 
@@ -129,7 +129,7 @@ export function Hero() {
               Run Against
             </span>
             <span className="mt-1 block bg-gradient-to-r from-[#ffa500] via-[#dc143c] to-[#dc143c] bg-clip-text text-transparent">
-              Drugs 2025
+              Drugs 2026
             </span>
           </motion.h1>
 

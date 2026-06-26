@@ -51,16 +51,10 @@ const highlights: Highlight[] = [
     icon: Shirt,
     title: "Free Event T-Shirt",
     description:
-      "Every confirmed participant receives an official Run Against Drugs 2025 event T-shirt.",
+      "Every confirmed participant receives an official Run Against Drugs 2026 event T-shirt.",
     badgeClass: "bg-gradient-orange text-white",
   },
-  {
-    icon: Trophy,
-    title: "Certificates & Prizes",
-    description:
-      "Earn an official participation certificate and compete for exciting prizes and recognition.",
-    badgeClass: "bg-[#228b22] text-white",
-  },
+
   {
     icon: Zap,
     title: "Youth Empowerment",
@@ -72,7 +66,7 @@ const highlights: Highlight[] = [
     icon: Activity,
     title: "Health & Fitness",
     description:
-      "Kickstart or strengthen your fitness journey with a 5KM route designed for all levels.",
+      "Kickstart or strengthen your fitness journey with a 3KM route designed for all levels.",
     badgeClass: "bg-gradient-to-br from-[#1e90ff] to-[#228b22] text-white",
   },
 ];
