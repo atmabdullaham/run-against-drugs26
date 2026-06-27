@@ -82,7 +82,6 @@ export function AdminDashboard() {
   const [searchBkash, setSearchBkash] = useState("");
   const [searchActive, setSearchActive] = useState(false);
 
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ---- Auth check on mount
   useEffect(() => {
@@ -144,21 +143,6 @@ export function AdminDashboard() {
     }
   }, [authed, activeTab, fetchRegistrations, fetchSummary, searchActive]);
 
-  // ---- Optional auto-poll every 30s for fresh data
-  useEffect(() => {
-    if (!authed) return;
-    pollRef.current = setInterval(() => {
-      fetchSummary();
-      // only refresh the current tab silently
-      api
-        .get<RegistrationsResponse>(`/api/admin/registrations?status=${activeTab}`)
-        .then((res) => setRegistrations(res.registrations || []))
-        .catch(() => {});
-    }, 30000);
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, [authed, activeTab, fetchSummary]);
 
   // ---- Handlers
   const handleSearch = useCallback(async (e?: React.FormEvent) => {
