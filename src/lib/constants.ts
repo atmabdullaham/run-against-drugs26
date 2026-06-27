@@ -12,7 +12,7 @@ export const EVENT_CONFIG = {
   location: "Chawkbazar (Gulzar Mor), Chittagong",
   registrationFee: 100,
   bkashNumber: "01859902430",
-  contactPhone: "01859902430",
+  contactPhone: "01882137803",
   // WhatsApp group link - shown only when registration is accepted
   whatsappGroupLink: "https://chat.whatsapp.com/JcoF9izXdoW9ulGZFphSNa?s=cl&p=a&ilr=4&amv=3",
   // SMS message template - {idNo} and {name} are replaced

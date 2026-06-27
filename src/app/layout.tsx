@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Run Against Drugs 2025 | Registration",
+  title: "Run Against Drugs | Registration",
   description:
     "Register for Run Against Drugs 2025 — a marathon for a drug-free Bangladesh. Organized by Bangladesh Islami Chhatrashibir.",
   keywords: [
