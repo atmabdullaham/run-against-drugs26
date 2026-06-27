@@ -2,7 +2,7 @@
 
 export type RegistrationStatus = "pending" | "accepted" | "rejected";
 
-export type AcademicLevel = "school" | "college" | "university";
+export type AcademicLevel = "school" | "college" | "university" | "honours" | "masters" | "polytechnic" | "degree";
 
 export type TShirtSize = "S" | "M" | "L" | "XL" | "XXL" | "3XL";
 

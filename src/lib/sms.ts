@@ -17,6 +17,38 @@ interface SendSmsParams {
  * For now, messages are logged to the SmsLog table and console for the admin
  * to verify what would be sent.
  */
+async function sendViaGateway(number: string, message: string): Promise<any> {
+  const apiKey = process.env.BULKSMS_API_KEY;
+  const senderId = process.env.BULKSMS_SENDERID;
+
+  if (!apiKey || !senderId) {
+    throw new Error("BulkSMS API Key or Sender ID is not configured in environment variables.");
+  }
+
+  const smsData = {
+    api_key: apiKey,
+    senderid: senderId,
+    number: number,
+    message: message,
+  };
+
+  const response = await fetch("http://bulksmsbd.net/api/smsapi", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(smsData),
+  });
+
+  if (!response.ok) {
+    throw new Error(`SMS Gateway HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  console.log("✅ SMS gateway response:", data);
+  return data;
+}
+
 export async function sendSms({ to, message, registrationId }: SendSmsParams): Promise<{
   success: boolean;
   message: string;
@@ -26,7 +58,7 @@ export async function sendSms({ to, message, registrationId }: SendSmsParams): P
     const normalizedPhone = normalizePhone(to);
 
     // Log the SMS attempt
-    await db.smsLog.create({
+    const log = await db.smsLog.create({
       data: {
         to: normalizedPhone,
         message,
@@ -35,15 +67,33 @@ export async function sendSms({ to, message, registrationId }: SendSmsParams): P
       },
     });
 
-    // TODO: Replace this with real SMS gateway integration
-    // Example:
-    // await sendViaGateway(normalizedPhone, message);
+    try {
+      // Strip leading '+' so the format becomes 8801XXXXXXXX
+      const gatewayPhone = normalizedPhone.replace("+", "");
+      await sendViaGateway(gatewayPhone, message);
 
-    console.log(`[SMS LOG] To: ${normalizedPhone} | Message: ${message}`);
+      // Update status to sent
+      await db.smsLog.update({
+        where: { id: log.id },
+        data: { status: "sent" },
+      });
 
-    return { success: true, message: "SMS logged successfully" };
+      console.log(`[SMS SENT] To: ${normalizedPhone} | Message: ${message}`);
+    } catch (gatewayError) {
+      console.error("❌ SMS Gateway send failed:", gatewayError);
+
+      // Update status to failed
+      await db.smsLog.update({
+        where: { id: log.id },
+        data: { status: "failed" },
+      });
+
+      return { success: false, message: "SMS gateway delivery failed" };
+    }
+
+    return { success: true, message: "SMS sent successfully" };
   } catch (error) {
-    console.error("SMS send error:", error);
+    console.error("SMS service error:", error);
     return { success: false, message: "Failed to send SMS" };
   }
 }

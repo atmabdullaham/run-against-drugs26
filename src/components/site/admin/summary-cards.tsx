@@ -22,9 +22,13 @@ interface SummaryCardsProps {
 
 const ALL_SIZES: TShirtSize[] = ["S", "M", "L", "XL", "XXL", "3XL"];
 const ALL_LEVELS: { value: AcademicLevel; label: string }[] = [
-  { value: "school", label: "School" },
-  { value: "college", label: "College" },
+  { value: "school", label: "School or Madrasha" },
+  { value: "college", label: "College or Madrasha" },
   { value: "university", label: "University" },
+  { value: "honours", label: "Honours" },
+  { value: "masters", label: "Masters" },
+  { value: "polytechnic", label: "Polytechnic" },
+  { value: "degree", label: "Degree" },
 ];
 
 interface StatCardProps {

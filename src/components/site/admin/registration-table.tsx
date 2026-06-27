@@ -51,9 +51,13 @@ interface RegistrationTableProps {
 }
 
 const LEVEL_LABELS: Record<AcademicLevel, string> = {
-  school: "School",
-  college: "College",
+  school: "School or Madrasha",
+  college: "College or Madrasha",
   university: "University",
+  honours: "Honours",
+  masters: "Masters",
+  polytechnic: "Polytechnic",
+  degree: "Degree",
 };
 
 const STATUS_BADGE: Record<RegistrationStatus, string> = {
@@ -130,18 +134,15 @@ export function RegistrationTable({
       <div className="relative">
         {/* Desktop / tablet: full table */}
         <div className="hidden max-h-[600px] overflow-auto rounded-lg border scrollbar-thin md:block">
-          <Table className="min-w-[1100px]">
+          <Table className="min-w-[800px]">
             <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[60px]"></TableHead>
                 <TableHead className="w-[90px]">ID No</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Institution</TableHead>
-                <TableHead>Class / Year</TableHead>
-                <TableHead className="text-center">T-Shirt</TableHead>
                 <TableHead>bKash Number</TableHead>
                 <TableHead>TrxID</TableHead>
-                <TableHead>Phone</TableHead>
                 <TableHead className="text-center">Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -150,14 +151,14 @@ export function RegistrationTable({
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={`skel-${i}`}>
-                    <TableCell colSpan={11} className="py-3">
+                    <TableCell colSpan={8} className="py-3">
                       <Skeleton className="h-8 w-full" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : registrations.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={11} className="h-40">
+                  <TableCell colSpan={8} className="h-40">
                     <EmptyState />
                   </TableCell>
                 </TableRow>
@@ -272,8 +273,11 @@ function DesktopRow({
 }: DesktopRowProps) {
   return (
     <>
-      <TableRow className={cn("group", expanded && "bg-muted/30")}>
-        <TableCell className="w-[60px]">
+      <TableRow 
+        className={cn("group cursor-pointer hover:bg-muted/40", expanded && "bg-muted/30")}
+        onClick={onToggle}
+      >
+        <TableCell className="w-[60px]" onClick={(e) => e.stopPropagation()}>
           <Button
             variant="ghost"
             size="icon"
@@ -302,20 +306,8 @@ function DesktopRow({
         <TableCell className="max-w-[180px] truncate" title={reg.institutionName}>
           {reg.institutionName}
         </TableCell>
-        <TableCell>
-          <span className="text-muted-foreground">
-            {LEVEL_LABELS[reg.academicLevel]}
-          </span>
-          <span className="text-foreground ml-1.5 text-xs">{reg.academicValue}</span>
-        </TableCell>
-        <TableCell className="text-center">
-          <Badge variant="secondary" className="font-mono">
-            {reg.tShirtSize}
-          </Badge>
-        </TableCell>
         <TableCell className="font-mono text-xs">{reg.bkashNumber}</TableCell>
         <TableCell className="font-mono text-xs">{reg.transactionId}</TableCell>
-        <TableCell className="font-mono text-xs">{reg.phoneNumber}</TableCell>
         <TableCell className="text-center">
           <span
             className={cn(
@@ -327,7 +319,7 @@ function DesktopRow({
             <span className="capitalize">{reg.status}</span>
           </span>
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-end gap-1">
             {actionLoading ? (
               <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
@@ -338,7 +330,7 @@ function DesktopRow({
         </TableCell>
       </TableRow>
       <TableRow className={cn("hover:bg-transparent", expanded && "bg-muted/20")}>
-        <TableCell colSpan={11} className="p-0">
+        <TableCell colSpan={8} className="p-0">
           <AnimatePresence initial={false}>
             {expanded && (
               <motion.div

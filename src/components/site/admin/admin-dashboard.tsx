@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
+  Download,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -74,8 +75,12 @@ export function AdminDashboard() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState<boolean>(false);
 
-  const [activeTab, setActiveTab] = useState<TabKey>("all");
+  const [activeTab, setActiveTab] = useState<TabKey>("pending");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const [searchTxnId, setSearchTxnId] = useState("");
+  const [searchBkash, setSearchBkash] = useState("");
+  const [searchActive, setSearchActive] = useState(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -134,8 +139,10 @@ export function AdminDashboard() {
   useEffect(() => {
     if (!authed) return;
     fetchSummary();
-    fetchRegistrations(activeTab);
-  }, [authed, activeTab, fetchRegistrations, fetchSummary]);
+    if (!searchActive) {
+      fetchRegistrations(activeTab);
+    }
+  }, [authed, activeTab, fetchRegistrations, fetchSummary, searchActive]);
 
   // ---- Optional auto-poll every 30s for fresh data
   useEffect(() => {
@@ -154,9 +161,131 @@ export function AdminDashboard() {
   }, [authed, activeTab, fetchSummary]);
 
   // ---- Handlers
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    
+    const txn = searchTxnId.trim().toUpperCase();
+    const bkash = searchBkash.trim();
+    
+    if (!txn && !bkash) {
+      setSearchActive(false);
+      fetchRegistrations(activeTab);
+      return;
+    }
+
+    setRegsLoading(true);
+    setSearchActive(true);
+    try {
+      const res = await api.get<RegistrationsResponse>("/api/admin/registrations?status=all");
+      const allRegs = res.registrations || [];
+      
+      const filtered = allRegs.filter((r) => {
+        const matchTxn = txn ? r.transactionId.toUpperCase().includes(txn) : true;
+        const matchBkash = bkash ? r.bkashNumber.includes(bkash) : true;
+        return matchTxn && matchBkash;
+      });
+      
+      setRegistrations(filtered);
+      toast({
+        title: "Search completed",
+        description: `Found ${filtered.length} matching registration(s) globally.`,
+      });
+    } catch (err) {
+      toast({
+        title: "Search failed",
+        description: "Could not perform global search.",
+        variant: "destructive",
+      });
+    } finally {
+      setRegsLoading(false);
+    }
+  }, [searchTxnId, searchBkash, activeTab, fetchRegistrations, toast]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTxnId("");
+    setSearchBkash("");
+    setSearchActive(false);
+    fetchRegistrations(activeTab);
+  }, [activeTab, fetchRegistrations]);
+
+  const handleExportCSV = useCallback(() => {
+    if (registrations.length === 0) {
+      toast({
+        title: "No data",
+        description: "There are no registrations to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const headers = [
+      "ID No",
+      "Name",
+      "Phone Number",
+      "WhatsApp Number",
+      "Institution",
+      "Academic Level",
+      "Class/Year/Semester",
+      "T-Shirt Size",
+      "bKash Number",
+      "Transaction ID",
+      "Present Address",
+      "Permanent Address",
+      "Status",
+      "Registered Date"
+    ];
+
+    const rows = registrations.map((r) => [
+      r.idNo || "",
+      r.name,
+      r.phoneNumber,
+      r.whatsappNumber,
+      r.institutionName,
+      r.academicLevel,
+      r.academicValue,
+      r.tShirtSize,
+      r.bkashNumber,
+      r.transactionId,
+      r.presentAddress,
+      r.permanentAddress,
+      r.status,
+      new Date(r.createdAt).toLocaleString()
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) =>
+        row
+          .map((val) => {
+            const strVal = String(val).replace(/"/g, '""');
+            return `"${strVal}"`;
+          })
+          .join(",")
+      )
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `registrations_${activeTab}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Export Successful",
+      description: `Downloaded CSV containing ${registrations.length} registration(s).`,
+    });
+  }, [registrations, activeTab, toast]);
+
   function handleLogin() {
     setAuthed(true);
-    setActiveTab("all");
+    setActiveTab("pending");
+    setSearchTxnId("");
+    setSearchBkash("");
+    setSearchActive(false);
   }
 
   async function handleLogout() {
@@ -328,20 +457,88 @@ export function AdminDashboard() {
           >
             <SummaryCards summary={summary} loading={summaryLoading} />
 
+            {/* Search Box */}
+            <div className="bg-card rounded-xl border p-4 shadow-sm">
+              <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="flex-1 space-y-1.5">
+                  <label htmlFor="search-txnid" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Transaction ID
+                  </label>
+                  <input
+                    id="search-txnid"
+                    type="text"
+                    placeholder="e.g. 9XQ4AB12CD"
+                    value={searchTxnId}
+                    onChange={(e) => setSearchTxnId(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 uppercase font-mono"
+                  />
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <label htmlFor="search-bkash" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    bKash Number
+                  </label>
+                  <input
+                    id="search-bkash"
+                    type="tel"
+                    placeholder="e.g. 018XXXXXXXX"
+                    value={searchBkash}
+                    onChange={(e) => setSearchBkash(e.target.value.replace(/[^0-9]/g, ""))}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 font-mono"
+                  />
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <Button
+                    type="submit"
+                    disabled={regsLoading || (!searchTxnId.trim() && !searchBkash.trim())}
+                    className="bg-gradient-navy text-white hover:opacity-90 shadow-navy h-9 px-4 py-2"
+                  >
+                    Search
+                  </Button>
+                  {searchActive && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleClearSearch}
+                      className="h-9 px-4 py-2"
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </div>
+
             {/* Tabs + Table */}
             <div className="flex flex-col gap-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-foreground text-lg font-semibold">
-                    Registrations
-                  </h2>
-                  <p className="text-muted-foreground text-xs">
-                    Review and manage participant submissions
-                  </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div>
+                    <h2 className="text-foreground text-lg font-semibold">
+                      Registrations
+                    </h2>
+                    <p className="text-muted-foreground text-xs">
+                      Review and manage participant submissions
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportCSV}
+                    disabled={registrations.length === 0}
+                    className="h-8 gap-1.5 text-xs border-navy/35 text-navy hover:bg-navy/10 sm:ml-2 mt-1 sm:mt-0"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>Export CSV</span>
+                  </Button>
                 </div>
                 <Tabs
                   value={activeTab}
-                  onValueChange={(v) => setActiveTab(v as TabKey)}
+                  onValueChange={(v) => {
+                    setActiveTab(v as TabKey);
+                    setSearchTxnId("");
+                    setSearchBkash("");
+                    setSearchActive(false);
+                  }}
                 >
                   <TabsList className="bg-muted h-9">
                     {TAB_CONFIG.map((t) => (

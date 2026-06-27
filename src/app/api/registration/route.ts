@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ensureAdminSeeded } from "@/lib/auth";
-import { ACADEMIC_LEVELS, ACADEMIC_VALUES, TSHIRT_SIZES, REGISTRATION_STATUS } from "@/lib/constants";
+import { ACADEMIC_LEVELS, ACADEMIC_VALUES, TSHIRT_SIZES, REGISTRATION_STATUS, MAX_TRANSACTION_ID_USES } from "@/lib/constants";
 import type { RegistrationInput } from "@/types";
 
 // Ensure admin is seeded on first API call
@@ -83,13 +83,16 @@ export async function POST(request: NextRequest) {
       permanentAddress: data.permanentAddress!.trim(),
     };
 
-    // Check for duplicate transaction ID
-    const existingTxn = await db.registration.findFirst({
+    // Check for duplicate transaction ID usage limit
+    const existingTxnCount = await db.registration.count({
       where: { transactionId: cleaned.transactionId },
     });
-    if (existingTxn) {
+    if (existingTxnCount >= MAX_TRANSACTION_ID_USES) {
       return NextResponse.json(
-        { success: false, error: "This Transaction ID has already been used. Please check and try again." },
+        {
+          success: false,
+          error: `This Transaction ID has already been used the maximum of ${MAX_TRANSACTION_ID_USES} times. Please check and try again.`,
+        },
         { status: 409 }
       );
     }
