@@ -17,7 +17,7 @@ export const EVENT_CONFIG = {
   whatsappGroupLink: "https://chat.whatsapp.com/JcoF9izXdoW9ulGZFphSNa?s=cl&p=a&ilr=4&amv=3",
   // SMS message template - {idNo} and {name} are replaced
   smsTemplate:
-    "Assalamu Alaikum {name}! Your registration for run is CONFIRMED. ID: {idNo}. Msg 01881849412 for getting WhatsApp group link. ShibirCCN",
+    "Assalamu Alaikum {name}! Your registration for Run Against Drugs is CONFIRMED. ID: {idNo}. Msg 01881849412 for getting WhatsApp group link. ShibirCCN",
 } as const;
 
 // Academic level options for registration form

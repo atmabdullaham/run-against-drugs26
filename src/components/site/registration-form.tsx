@@ -11,6 +11,7 @@ import {
   Send,
   CheckCircle2,
   Info,
+  Clock,
 } from "lucide-react";
 import {
   Card,
@@ -140,6 +141,10 @@ export function RegistrationForm() {
   const [sameAddress, setSameAddress] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const isClosed = useMemo(() => {
+    return Date.now() > new Date(EVENT_CONFIG.registrationDeadline).getTime();
+  }, []);
 
   const academicValueOptions = useMemo(() => {
     if (!form.academicLevel) return [];
@@ -322,6 +327,39 @@ export function RegistrationForm() {
       transition: { delay: 0.1 * i, duration: 0.4, ease: "easeOut" as const },
     }),
   };
+
+  if (isClosed) {
+    return (
+      <div className="w-full max-w-2xl mx-auto pb-12 px-4 sm:px-6">
+        <Card className="border-brand-red/30 bg-card shadow-lg text-center overflow-hidden relative">
+          <div aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-brand-red to-brand-orange" />
+          <CardHeader className="pt-8 pb-4 flex flex-col items-center">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-brand-red/10 mb-4 animate-pulse">
+              <Clock className="w-8 h-8 text-brand-red" />
+            </div>
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-gradient-navy">
+              Registration Closed
+            </CardTitle>
+            <CardDescription className="text-sm sm:text-base mt-2 max-w-md mx-auto">
+              Registration for the {EVENT_CONFIG.name} is now closed. Thank you to everyone who registered!
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pb-8 pt-2 flex flex-col items-center gap-4">
+            <p className="text-sm text-muted-foreground max-w-sm">
+              If you have already registered, you can verify your details and status on the &quot;My Registration&quot; page.
+            </p>
+            <Button
+              type="button"
+              onClick={() => navigate("my-registration")}
+              className="bg-gradient-navy text-white hover:opacity-90 shadow-navy rounded-full px-6 py-2 mt-2"
+            >
+              Check My Registration
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <>

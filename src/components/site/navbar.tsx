@@ -13,6 +13,8 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { view } = useViewRouter();
 
+  const isClosed = Date.now() > new Date(EVENT_CONFIG.registrationDeadline).getTime();
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
@@ -100,23 +102,34 @@ export function Navbar() {
 
             {/* Desktop CTA */}
             <div className="hidden lg:flex items-center gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => navigate("my-registration")}
-                className={`transition-all duration-300 ${
-                  isNavbarScrolled
-                    ? "text-navy hover:bg-accent/50"
-                    : "text-white hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                My Registration
-              </Button>
-              <Button
-                onClick={() => navigate("register")}
-                className="bg-gradient-red text-white hover:opacity-90 shadow-red"
-              >
-                Register Now
-              </Button>
+              {isClosed ? (
+                <Button
+                  onClick={() => navigate("my-registration")}
+                  className="bg-gradient-navy text-white hover:opacity-90 shadow-navy"
+                >
+                  My Registration
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate("my-registration")}
+                    className={`transition-all duration-300 ${
+                      isNavbarScrolled
+                        ? "text-navy hover:bg-accent/50"
+                        : "text-white hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    My Registration
+                  </Button>
+                  <Button
+                    onClick={() => navigate("register")}
+                    className="bg-gradient-red text-white hover:opacity-90 shadow-red"
+                  >
+                    Register Now
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -165,24 +178,26 @@ export function Navbar() {
                 ))}
                 <div className="h-px bg-border my-2" />
                 <Button
-                  variant="outline"
+                  variant={isClosed ? "default" : "outline"}
                   onClick={() => {
                     setMobileOpen(false);
                     navigate("my-registration");
                   }}
-                  className="w-full justify-center"
+                  className={`w-full justify-center ${isClosed ? "bg-gradient-navy text-white hover:opacity-90" : ""}`}
                 >
                   My Registration
                 </Button>
-                <Button
-                  onClick={() => {
-                    setMobileOpen(false);
-                    navigate("register");
-                  }}
-                  className="w-full justify-center bg-gradient-red text-white"
-                >
-                  Register Now
-                </Button>
+                {!isClosed && (
+                  <Button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      navigate("register");
+                    }}
+                    className="w-full justify-center bg-gradient-red text-white"
+                  >
+                    Register Now
+                  </Button>
+                )}
               </div>
             </motion.div>
           </motion.div>

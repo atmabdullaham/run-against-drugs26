@@ -114,6 +114,7 @@ const steps = [
 ];
 
 export function EventInfo() {
+  const isClosed = Date.now() > new Date(EVENT_CONFIG.registrationDeadline).getTime();
   return (
     <section
       id="details"
@@ -255,12 +256,21 @@ export function EventInfo() {
                 </p>
               </div>
             </div>
-            <Button
-              onClick={() => navigate("register")}
-              className="bg-gradient-red shrink-0 rounded-full px-6 py-3 font-semibold text-white shadow-red hover:text-white"
-            >
-              Register Now
-            </Button>
+            {isClosed ? (
+              <Button
+                onClick={() => navigate("my-registration")}
+                className="bg-gradient-navy shrink-0 rounded-full px-6 py-3 font-semibold text-white shadow-navy hover:text-white"
+              >
+                My Registration
+              </Button>
+            ) : (
+              <Button
+                onClick={() => navigate("register")}
+                className="bg-gradient-red shrink-0 rounded-full px-6 py-3 font-semibold text-white shadow-red hover:text-white"
+              >
+                Register Now
+              </Button>
+            )}
           </div>
         </motion.div>
       </div>

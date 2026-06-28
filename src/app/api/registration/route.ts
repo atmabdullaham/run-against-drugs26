@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ensureAdminSeeded } from "@/lib/auth";
-import { ACADEMIC_LEVELS, ACADEMIC_VALUES, TSHIRT_SIZES, REGISTRATION_STATUS, MAX_TRANSACTION_ID_USES } from "@/lib/constants";
+import { EVENT_CONFIG, ACADEMIC_LEVELS, ACADEMIC_VALUES, TSHIRT_SIZES, REGISTRATION_STATUS, MAX_TRANSACTION_ID_USES } from "@/lib/constants";
 import type { RegistrationInput } from "@/types";
 
 // Ensure admin is seeded on first API call
@@ -18,6 +18,14 @@ async function ensureSeeded() {
 export async function POST(request: NextRequest) {
   await ensureSeeded();
   try {
+    // Check registration deadline
+    if (Date.now() > new Date(EVENT_CONFIG.registrationDeadline).getTime()) {
+      return NextResponse.json(
+        { success: false, error: "Registration has closed." },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     // Validate required fields

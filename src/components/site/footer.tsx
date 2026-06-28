@@ -6,6 +6,7 @@ import { navigate } from "@/lib/nav";
 import { EVENT_CONFIG } from "@/lib/constants";
 
 export function Footer() {
+  const isClosed = Date.now() > new Date(EVENT_CONFIG.registrationDeadline).getTime();
   return (
     <footer className="bg-navy-dark text-white mt-auto">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -39,12 +40,14 @@ export function Footer() {
               >
                 Home
               </button>
-              <button
-                onClick={() => navigate("register")}
-                className="text-sm text-white/70 hover:text-sky transition-colors text-left"
-              >
-                Register Now
-              </button>
+              {!isClosed && (
+                <button
+                  onClick={() => navigate("register")}
+                  className="text-sm text-white/70 hover:text-sky transition-colors text-left"
+                >
+                  Register Now
+                </button>
+              )}
               <button
                 onClick={() => navigate("my-registration")}
                 className="text-sm text-white/70 hover:text-sky transition-colors text-left"
@@ -87,12 +90,21 @@ export function Footer() {
           <p className="text-xs text-white/50">
             © {new Date().getFullYear()} {EVENT_CONFIG.name}. All rights reserved.
           </p>
-          <Button
-            onClick={() => navigate("register")}
-            className="bg-gradient-red text-white hover:opacity-90 shadow-red"
-          >
-            Register Now
-          </Button>
+          {isClosed ? (
+            <Button
+              onClick={() => navigate("my-registration")}
+              className="bg-gradient-navy text-white hover:opacity-90 shadow-navy"
+            >
+              My Registration
+            </Button>
+          ) : (
+            <Button
+              onClick={() => navigate("register")}
+              className="bg-gradient-red text-white hover:opacity-90 shadow-red"
+            >
+              Register Now
+            </Button>
+          )}
         </div>
         <div className="text-center text-xs text-white/40 mt-4 flex flex-col items-center justify-center gap-1">
           <p className="flex items-center gap-1 justify-center">

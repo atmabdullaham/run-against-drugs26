@@ -58,6 +58,7 @@ function formatEventDate(iso: string): string {
 }
 
 export function Hero() {
+  const isClosed = Date.now() > new Date(EVENT_CONFIG.registrationDeadline).getTime();
   const onLearnMore = React.useCallback(() => {
     const el = document.getElementById("about");
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -162,14 +163,25 @@ export function Hero() {
             variants={itemVariants}
             className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row"
           >
-            <Button
-              size="lg"
-              onClick={() => navigate("register")}
-              className="bg-gradient-red w-full rounded-full px-8 py-3 text-base font-semibold text-white shadow-red transition-transform hover:scale-105 hover:text-white sm:w-auto"
-            >
-              Register Now
-              <ArrowRight className="size-5" />
-            </Button>
+            {isClosed ? (
+              <Button
+                size="lg"
+                onClick={() => navigate("my-registration")}
+                className="bg-gradient-navy w-full rounded-full px-8 py-3 text-base font-semibold text-white shadow-navy transition-transform hover:scale-105 hover:text-white sm:w-auto"
+              >
+                Check Registration Status
+                <ArrowRight className="size-5" />
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                onClick={() => navigate("register")}
+                className="bg-gradient-red w-full rounded-full px-8 py-3 text-base font-semibold text-white shadow-red transition-transform hover:scale-105 hover:text-white sm:w-auto"
+              >
+                Register Now
+                <ArrowRight className="size-5" />
+              </Button>
+            )}
             <Button
               size="lg"
               variant="outline"

@@ -172,6 +172,8 @@ export function MyRegistration() {
   const [result, setResult] = useState<SearchResult>({ kind: "idle" });
   const resultRef = useRef<HTMLDivElement | null>(null);
 
+  const isClosed = Date.now() > new Date(EVENT_CONFIG.registrationDeadline).getTime();
+
   useEffect(() => {
     if (result.kind !== "idle") {
       // Defer to next frame so the element is mounted before scrolling.
@@ -378,14 +380,20 @@ export function MyRegistration() {
                       . Please check your number or register now.
                     </p>
                     <div className="mt-6 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                      {!isClosed && (
+                        <Button
+                          onClick={() => navigate("register")}
+                          className="bg-gradient-red text-white hover:opacity-90 shadow-red"
+                        >
+                          <UserPlus className="w-4 h-4" />
+                          Register Now
+                        </Button>
+                      )}
                       <Button
-                        onClick={() => navigate("register")}
-                        className="bg-gradient-red text-white hover:opacity-90 shadow-red"
+                        variant={isClosed ? "default" : "outline"}
+                        onClick={handleReset}
+                        className={isClosed ? "bg-gradient-navy text-white hover:opacity-90 shadow-navy" : ""}
                       >
-                        <UserPlus className="w-4 h-4" />
-                        Register Now
-                      </Button>
-                      <Button variant="outline" onClick={handleReset}>
                         <RotateCw className="w-4 h-4" />
                         Try Another Number
                       </Button>
@@ -452,14 +460,16 @@ export function MyRegistration() {
               <ArrowLeft className="w-4 h-4" />
               Back to Home
             </Button>
-            <Button
-              variant="ghost"
-              onClick={() => navigate("register")}
-              className="w-full sm:w-auto"
-            >
-              <UserPlus className="w-4 h-4" />
-              Register Now
-            </Button>
+            {!isClosed && (
+              <Button
+                variant="ghost"
+                onClick={() => navigate("register")}
+                className="w-full sm:w-auto"
+              >
+                <UserPlus className="w-4 h-4" />
+                Register Now
+              </Button>
+            )}
           </motion.div>
         )}
       </div>
