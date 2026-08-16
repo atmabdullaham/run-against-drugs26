@@ -56,8 +56,51 @@ export interface ApiResponse<T = unknown> {
   error?: string;
 }
 
+export type AcademicFestGroup = "Science" | "Commerce" | "Arts";
+
+export interface AcademicFestRegistration {
+  id: string;
+  name: string;
+  institutionName: string;
+  tShirtSize: TShirtSize;
+  group: AcademicFestGroup;
+  rollNumber: string;
+  regNumber: string;
+  board: string;
+  phoneNumber: string;
+  whatsappNumber: string;
+  presentAddress: string;
+  sameAsPresent: boolean;
+  permanentAddress: string;
+  guestQuestion?: string | null;
+  status: RegistrationStatus;
+  idNo: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AcademicFestRegistrationInput {
+  name: string;
+  institutionName: string;
+  tShirtSize: TShirtSize;
+  group: AcademicFestGroup;
+  rollNumber: string;
+  regNumber: string;
+  board: string;
+  phoneNumber: string;
+  whatsappNumber: string;
+  presentAddress: string;
+  sameAsPresent: boolean;
+  permanentAddress: string;
+  guestQuestion?: string;
+}
+
 export type ViewName =
   | "home"
   | "register"
   | "my-registration"
-  | "admin";
+  | "admin"
+  | "event/hsc27-af"
+  | "event/hsc27-af/registration"
+  | "event/run26-agains-drugs";
+

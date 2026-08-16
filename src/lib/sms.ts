@@ -117,13 +117,10 @@ export function buildConfirmationSms(name: string, idNo: string): string {
     .replace("{idNo}", idNo);
 }
 
-/**
- * Generate the next sequential ID number (RD001, RD002, ...)
- * Must be called within a transaction for atomicity.
- *
- * ID is based on the ORDER OF ACCEPTANCE, not registration order.
- * The nth accepted registration gets RD{n:03d}.
- */
+export function buildAcademicFestConfirmationSms(name: string, idNo: string): string {
+  return `Assalamu Alaikum ${name}! Your registration for HSC'27 Academic Fest is CONFIRMED. ID No: ${idNo}. Venue: Chattogram Press Club, Date: 5th Sept 2026. ShibirCCN`;
+}
+
 export async function generateNextIdNo(): Promise<string> {
   const acceptedCount = await db.registration.count({
     where: { status: "accepted" },
@@ -131,4 +128,13 @@ export async function generateNextIdNo(): Promise<string> {
   const nextNumber = acceptedCount + 1;
   const padded = String(nextNumber).padStart(ID_NUMBER_PAD_LENGTH, "0");
   return `${ID_NUMBER_PREFIX}${padded}`;
+}
+
+export async function generateNextAcademicFestIdNo(): Promise<string> {
+  const acceptedCount = await db.academicFestRegistration.count({
+    where: { status: "accepted" },
+  });
+  const nextNumber = acceptedCount + 1;
+  const padded = String(nextNumber).padStart(3, "0");
+  return `AF${padded}`;
 }

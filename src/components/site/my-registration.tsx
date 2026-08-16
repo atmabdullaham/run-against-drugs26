@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
-  Lock,
   Phone,
   MessageCircle,
   User,
@@ -23,7 +22,9 @@ import {
   ArrowLeft,
   RotateCw,
   AlertCircle,
-  UserPlus,
+  Sparkles,
+  Award,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -41,24 +42,25 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
 import { navigate } from "@/lib/nav";
-import { EVENT_CONFIG, ACADEMIC_LEVELS } from "@/lib/constants";
+import { EVENT_CONFIG, HSC27_AF_CONFIG, ACADEMIC_LEVELS } from "@/lib/constants";
 import { api, ApiError } from "@/lib/api";
-import type { Registration, RegistrationStatus } from "@/types";
+import type { Registration, AcademicFestRegistration, RegistrationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+
+type EventType = "hsc27-af" | "run26-against-drugs";
 
 type SearchResult =
   | { kind: "idle" }
-  | { kind: "found"; registration: Registration }
-  | { kind: "not-found"; phone: string }
+  | { kind: "found-af"; registration: AcademicFestRegistration }
+  | { kind: "found-rad"; registration: Registration }
+  | { kind: "not-found"; term: string }
   | { kind: "error"; message: string };
 
 const PHONE_REGEX = /^01\d{9}$/;
 
-function validatePhone(value: string): string | null {
+function validateSearchTerm(value: string): string | null {
   const trimmed = value.trim();
-  if (!trimmed) return "Please enter your phone number.";
-  if (!PHONE_REGEX.test(trimmed))
-    return "Enter a valid 11-digit phone number starting with 01 (e.g. 01712345678).";
+  if (!trimmed) return "Please enter your phone number or registration number.";
   return null;
 }
 
@@ -78,49 +80,27 @@ function formatDateTime(iso: string): string {
   }
 }
 
-function academicLevelLabel(level: string): string {
-  const found = ACADEMIC_LEVELS.find((l) => l.value === level);
-  return found ? found.label.split(" (")[0] : level;
-}
-
 type StatusMeta = {
   label: string;
   icon: LucideIcon;
   badgeClass: string;
-  idBoxClass: string;
-  labelClass: string;
-  idTextClass: string;
 };
 
 const STATUS_META: Record<RegistrationStatus, StatusMeta> = {
   pending: {
     label: "Pending Review",
     icon: Clock,
-    badgeClass:
-      "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30",
-    idBoxClass:
-      "border-amber-300 bg-amber-50/60 dark:border-amber-500/30 dark:bg-amber-500/5",
-    labelClass: "text-amber-700 dark:text-amber-300",
-    idTextClass: "text-amber-900 dark:text-amber-200",
+    badgeClass: "bg-amber-500/20 text-amber-300 border-amber-500/40",
   },
   accepted: {
     label: "Accepted",
     icon: CheckCircle2,
-    badgeClass:
-      "bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-300 dark:border-green-500/30",
-    idBoxClass: "",
-    labelClass: "text-brand-green dark:text-green-300",
-    idTextClass: "",
+    badgeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
   },
   rejected: {
     label: "Rejected",
     icon: XCircle,
-    badgeClass:
-      "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30",
-    idBoxClass:
-      "border-red-300 bg-red-50/60 dark:border-red-500/30 dark:bg-red-500/5",
-    labelClass: "text-brand-red dark:text-red-300",
-    idTextClass: "text-red-900 dark:text-red-200",
+    badgeClass: "bg-red-500/20 text-red-300 border-red-500/40",
   },
 };
 
@@ -135,20 +115,18 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start gap-3 py-2.5">
-      <div className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg bg-accent/60 flex items-center justify-center text-navy dark:text-sky">
+      <div className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-emerald-400">
         <Icon className="w-4 h-4" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
           {label}
         </div>
-        <div className="text-sm font-semibold text-foreground break-words">
+        <div className="text-sm font-semibold text-white break-words">
           {value ? (
             value
           ) : (
-            <span className="text-muted-foreground font-normal italic">
-              Not provided
-            </span>
+            <span className="text-slate-500 font-normal italic">Not provided</span>
           )}
         </div>
       </div>
@@ -156,27 +134,17 @@ function InfoRow({
   );
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="text-[11px] font-bold uppercase tracking-wider text-navy dark:text-sky pt-4 pb-1 border-b border-border">
-      {children}
-    </div>
-  );
-}
-
 export function MyRegistration() {
   const { toast } = useToast();
-  const [phone, setPhone] = useState("");
-  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventType>("hsc27-af");
+  const [term, setTerm] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SearchResult>({ kind: "idle" });
   const resultRef = useRef<HTMLDivElement | null>(null);
 
-  const isClosed = Date.now() > new Date(EVENT_CONFIG.registrationDeadline).getTime();
-
   useEffect(() => {
     if (result.kind !== "idle") {
-      // Defer to next frame so the element is mounted before scrolling.
       requestAnimationFrame(() => {
         resultRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -186,44 +154,60 @@ export function MyRegistration() {
     }
   }, [result]);
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
-    setPhone(digits);
-    if (phoneError) setPhoneError(null);
-  };
-
-  const runSearch = async () => {
-    const err = validatePhone(phone);
-    if (err) {
-      setPhoneError(err);
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const valErr = validateSearchTerm(term);
+    if (valErr) {
+      setError(valErr);
       return;
     }
+
     setLoading(true);
     setResult({ kind: "idle" });
+    setError(null);
+
+    const query = term.trim();
+
     try {
-      const data = await api.get<{
-        success: boolean;
-        found?: boolean;
-        registration?: Registration;
-        error?: string;
-      }>(`/api/registration/status?phone=${encodeURIComponent(phone.trim())}`);
+      if (selectedEvent === "hsc27-af") {
+        // Query Academic Fest API endpoint
+        const isDigits = /^[0-9]+$/.test(query);
+        const queryParam = isDigits && query.length === 11 ? `phone=${encodeURIComponent(query)}` : `regNumber=${encodeURIComponent(query)}`;
+        const res = await fetch(`/api/event/hsc27-af/registration?${queryParam}`);
+        const data = await res.json();
 
-      if (!data.success) {
-        throw new Error(data.error || "Something went wrong. Please try again.");
-      }
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || "Lookup failed");
+        }
 
-      if (data.found && data.registration) {
-        setResult({ kind: "found", registration: data.registration });
+        if (data.found && data.registration) {
+          setResult({ kind: "found-af", registration: data.registration });
+        } else {
+          setResult({ kind: "not-found", term: query });
+        }
       } else {
-        setResult({ kind: "not-found", phone: phone.trim() });
+        // Query Run Against Drugs API endpoint
+        const data = await api.get<{
+          success: boolean;
+          found?: boolean;
+          registration?: Registration;
+          error?: string;
+        }>(`/api/registration/status?phone=${encodeURIComponent(query)}`);
+
+        if (!data.success) {
+          throw new Error(data.error || "Lookup failed");
+        }
+
+        if (data.found && data.registration) {
+          setResult({ kind: "found-rad", registration: data.registration });
+        } else {
+          setResult({ kind: "not-found", term: query });
+        }
       }
     } catch (e) {
-      const msg =
-        e instanceof ApiError || e instanceof Error
-          ? e.message
-          : "Unable to reach the server. Please try again.";
+      const msg = e instanceof Error ? e.message : "Unable to reach server.";
       toast({
-        title: "Lookup failed",
+        title: "Lookup Failed",
         description: msg,
         variant: "destructive",
       });
@@ -233,114 +217,123 @@ export function MyRegistration() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    void runSearch();
-  };
-
   const handleReset = () => {
     setResult({ kind: "idle" });
-    setPhone("");
-    setPhoneError(null);
+    setTerm("");
+    setError(null);
   };
 
-  const statusMeta: StatusMeta | null =
-    result.kind === "found" ? STATUS_META[result.registration.status] : null;
-
   return (
-    <div className="container mx-auto px-4 py-12 sm:py-16 min-h-[calc(100vh-5rem)] bg-pattern">
+    <div className="container mx-auto px-4 py-12 sm:py-16 min-h-[calc(100vh-5rem)] bg-slate-950 text-white">
       <div className="max-w-2xl mx-auto">
         {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
           className="text-center mb-8"
         >
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-navy shadow-navy mb-4">
-            <Search className="w-6 h-6 text-white" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 mb-4 shadow-lg">
+            <Search className="w-7 h-7" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gradient-navy leading-tight">
-            Check Your Registration Status
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Check Registration Status
           </h1>
-          <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
-            Enter the phone number you used during registration
+          <p className="mt-2 text-sm sm:text-base text-slate-400 max-w-md mx-auto">
+            Select your event and enter your registered phone number or registration ID.
           </p>
         </motion.div>
 
-        {/* Search form */}
+        {/* Event Selection Switcher */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          whileHover={{ y: -2 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
         >
-          <Card className="shadow-navy/30 border-border/80">
+          <div className="grid grid-cols-2 gap-3 p-1.5 rounded-2xl bg-slate-900 border border-slate-800">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedEvent("hsc27-af");
+                handleReset();
+              }}
+              className={`flex items-center justify-center gap-2 rounded-xl py-3 px-3 text-xs sm:text-sm font-bold transition-all ${
+                selectedEvent === "hsc27-af"
+                  ? "bg-emerald-500 text-slate-950 shadow-md"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+              }`}
+            >
+              <Sparkles className="size-4 text-amber-300" />
+              <span>HSC&apos;27 Academic Fest</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedEvent("run26-against-drugs");
+                handleReset();
+              }}
+              className={`flex items-center justify-center gap-2 rounded-xl py-3 px-3 text-xs sm:text-sm font-bold transition-all ${
+                selectedEvent === "run26-against-drugs"
+                  ? "bg-emerald-500 text-slate-950 shadow-md"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+              }`}
+            >
+              <span>Run Against Drugs 2026</span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Search Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="border-slate-800 bg-slate-900/90 text-white shadow-2xl backdrop-blur-md">
             <CardHeader>
-              <CardTitle className="text-lg text-navy">Phone Lookup</CardTitle>
-              <CardDescription>
-                Use the 11-digit mobile number (e.g. 01712345678) you registered
-                with.
+              <CardTitle className="text-lg text-white">
+                {selectedEvent === "hsc27-af" ? "HSC'27 Academic Fest Lookup" : "Run Against Drugs Lookup"}
+              </CardTitle>
+              <CardDescription className="text-slate-400 text-xs">
+                {selectedEvent === "hsc27-af"
+                  ? "Enter the Mobile Phone Number (01XXXXXXXXX) or SSC Registration Number used during registration."
+                  : "Enter the 11-digit mobile number used during registration."}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              <form onSubmit={handleSearch} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-navy">
-                    Phone Number
+                  <Label htmlFor="term" className="text-slate-200">
+                    {selectedEvent === "hsc27-af" ? "Phone or Registration Number" : "Phone Number"}
                   </Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      inputMode="numeric"
-                      autoComplete="tel"
-                      placeholder="01XXXXXXXXX"
-                      value={phone}
-                      onChange={handlePhoneChange}
-                      maxLength={11}
-                      aria-invalid={!!phoneError}
-                      aria-describedby={
-                        phoneError ? "phone-error" : "phone-hint"
-                      }
-                      className={`pl-9 h-11 text-base tracking-wide ${
-                        phoneError ? "border-destructive" : ""
-                      }`}
+                      id="term"
+                      type="text"
+                      placeholder={selectedEvent === "hsc27-af" ? "01XXXXXXXXX or SSC Reg No" : "01XXXXXXXXX"}
+                      value={term}
+                      onChange={(e) => setTerm(e.target.value)}
+                      className="pl-9 h-11 bg-slate-950 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500"
                       disabled={loading}
                     />
                   </div>
-                  {phoneError ? (
-                    <p
-                      id="phone-error"
-                      role="alert"
-                      className="text-xs font-medium text-destructive flex items-center gap-1.5"
-                    >
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      {phoneError}
-                    </p>
-                  ) : (
-                    <p id="phone-hint" className="text-xs text-muted-foreground">
-                      We only use this to find your registration record.
-                    </p>
-                  )}
+                  {error && <p className="text-xs text-red-400">{error}</p>}
                 </div>
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-11 bg-gradient-navy text-white hover:opacity-90 shadow-navy"
+                  className="w-full h-11 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold shadow-lg shadow-emerald-500/20"
                 >
                   {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Searching...
-                    </>
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Searching...
+                    </span>
                   ) : (
-                    <>
-                      <Search className="w-4 h-4" />
-                      Search
-                    </>
+                    <span className="flex items-center justify-center gap-2">
+                      <Search className="w-4 h-4" /> Check Status
+                    </span>
                   )}
                 </Button>
               </form>
@@ -348,398 +341,195 @@ export function MyRegistration() {
           </Card>
         </motion.div>
 
-        {/* Results */}
-        <div
-          ref={resultRef}
-          className="mt-6"
-          aria-live="polite"
-          aria-atomic="true"
-        >
+        {/* Search Results */}
+        <div ref={resultRef} className="mt-6">
           <AnimatePresence mode="wait">
             {result.kind === "not-found" && (
               <motion.div
-                key="not-found"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.3 }}
               >
-                <Card className="border-amber-200 bg-amber-50/40 dark:bg-amber-500/5">
-                  <CardContent className="pt-6 flex flex-col items-center text-center">
-                    <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-500/15 flex items-center justify-center mb-4">
-                      <SearchX className="w-8 h-8 text-amber-600 dark:text-amber-300" />
-                    </div>
-                    <h2 className="text-xl font-bold text-navy">
-                      User Not Found
-                    </h2>
-                    <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-                      No registration found with phone number{" "}
-                      <span className="font-semibold text-foreground">
-                        {result.phone}
-                      </span>
-                      . Please check your number or register now.
-                    </p>
-                    <div className="mt-6 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                      {!isClosed && (
-                        <Button
-                          onClick={() => navigate("register")}
-                          className="bg-gradient-red text-white hover:opacity-90 shadow-red"
-                        >
-                          <UserPlus className="w-4 h-4" />
-                          Register Now
-                        </Button>
-                      )}
+                <Card className="border-amber-500/30 bg-slate-900 text-white text-center p-6">
+                  <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-full bg-amber-500/20 text-amber-400">
+                    <SearchX className="size-8" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">No Registration Found</h3>
+                  <p className="mt-2 text-sm text-slate-300">
+                    No record found for &quot;<span className="font-semibold text-amber-400">{result.term}</span>&quot; in {selectedEvent === "hsc27-af" ? "HSC'27 Academic Fest" : "Run Against Drugs 2026"}.
+                  </p>
+                  <div className="mt-6 flex justify-center gap-3">
+                    {selectedEvent === "hsc27-af" && (
                       <Button
-                        variant={isClosed ? "default" : "outline"}
-                        onClick={handleReset}
-                        className={isClosed ? "bg-gradient-navy text-white hover:opacity-90 shadow-navy" : ""}
+                        onClick={() => navigate("event/hsc27-af/registration")}
+                        className="bg-amber-400 font-bold text-slate-950 hover:bg-amber-300"
                       >
-                        <RotateCw className="w-4 h-4" />
-                        Try Another Number
+                        Register for HSC&apos;27 Fest
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-
-            {result.kind === "error" && (
-              <motion.div
-                key="error"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className="border-destructive/40 bg-red-50/40 dark:bg-red-500/5">
-                  <CardContent className="pt-6 flex flex-col items-center text-center">
-                    <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/15 flex items-center justify-center mb-4">
-                      <AlertCircle className="w-8 h-8 text-brand-red" />
-                    </div>
-                    <h2 className="text-xl font-bold text-navy">
-                      Something went wrong
-                    </h2>
-                    <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-                      {result.message}
-                    </p>
-                    <Button
-                      onClick={() => void runSearch()}
-                      className="mt-6 bg-gradient-navy text-white hover:opacity-90 shadow-navy"
-                    >
-                      <RotateCw className="w-4 h-4" />
-                      Retry Search
+                    )}
+                    <Button variant="outline" onClick={handleReset} className="border-slate-700 text-white hover:bg-slate-800">
+                      Try Another Number
                     </Button>
-                  </CardContent>
+                  </div>
                 </Card>
               </motion.div>
             )}
 
-            {result.kind === "found" && statusMeta && (
-              <FoundCard
-                registration={result.registration}
-                statusMeta={statusMeta}
-                onReset={handleReset}
-              />
+            {result.kind === "found-af" && (
+              <AcademicFestResultCard registration={result.registration} onReset={handleReset} />
+            )}
+
+            {result.kind === "found-rad" && (
+              <RunAgainstDrugsResultCard registration={result.registration} onReset={handleReset} />
             )}
           </AnimatePresence>
         </div>
 
-        {/* Bottom action when idle */}
         {result.kind === "idle" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
-          >
-            <Button
-              variant="outline"
-              onClick={() => navigate("home")}
-              className="w-full sm:w-auto"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Home
+          <div className="mt-8 text-center">
+            <Button variant="ghost" onClick={() => navigate("home")} className="text-slate-400 hover:text-white">
+              <ArrowLeft className="mr-2 size-4" /> Back to Main Event Portal
             </Button>
-            {!isClosed && (
-              <Button
-                variant="ghost"
-                onClick={() => navigate("register")}
-                className="w-full sm:w-auto"
-              >
-                <UserPlus className="w-4 h-4" />
-                Register Now
-              </Button>
-            )}
-          </motion.div>
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Found card — keeps the main component readable                       */
-/* ------------------------------------------------------------------ */
-
-function FoundCard({
+// Result Card for HSC'27 Academic Fest
+function AcademicFestResultCard({
   registration,
-  statusMeta,
   onReset,
 }: {
-  registration: Registration;
-  statusMeta: StatusMeta;
+  registration: AcademicFestRegistration;
   onReset: () => void;
 }) {
-  const StatusIcon = statusMeta.icon;
-  const firstName = registration.name.split(" ")[0] || "Participant";
-  const accepted =
-    registration.status === "accepted" && !!registration.idNo;
+  const meta = STATUS_META[registration.status];
+  const Icon = meta.icon;
 
   return (
     <motion.div
-      key="found"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
-      transition={{ duration: 0.35 }}
     >
-      <Card className="overflow-hidden shadow-navy/40 py-0 gap-0">
-        {/* Header band */}
-        <CardHeader className="bg-gradient-navy text-white py-5 border-b-0">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <CardTitle className="text-sm font-medium uppercase tracking-widest text-white/80">
-                Registration Found
-              </CardTitle>
-              <CardDescription className="text-white/90 text-sm mt-1">
-                Welcome back, {firstName}! Here are your registration details.
-              </CardDescription>
-            </div>
-            <Badge
-              variant="outline"
-              className={`shrink-0 border ${statusMeta.badgeClass} text-xs px-3 py-1`}
-            >
-              <StatusIcon className="w-3.5 h-3.5" />
-              {statusMeta.label}
-            </Badge>
-          </div>
+      <Card className="border-emerald-500/40 bg-slate-900 text-white shadow-2xl overflow-hidden">
+        <CardHeader className="bg-emerald-950/60 border-b border-emerald-800/40 py-5 text-center">
+          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 mb-2 mx-auto">
+            HSC&apos;27 Academic Fest
+          </Badge>
+          <CardTitle className="text-2xl font-bold text-white">{registration.name}</CardTitle>
         </CardHeader>
-
-        <CardContent className="p-6 space-y-2">
-          {/* ID box */}
-          {accepted ? (
-            <motion.div
-              initial={{ scale: 0.96, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{
-                delay: 0.1,
-                type: "spring",
-                stiffness: 200,
-                damping: 18,
-              }}
-              className="rounded-xl bg-gradient-navy text-white p-5 shadow-navy relative overflow-hidden"
-            >
-              <div
-                className="absolute inset-0 bg-pattern opacity-20"
-                aria-hidden
-              />
-              <div className="relative">
-                <div className="text-[11px] font-semibold uppercase tracking-widest text-white/70">
-                  Your Participant ID
-                </div>
-                <div className="mt-1 text-3xl sm:text-4xl font-bold font-mono tracking-tight">
-                  {registration.idNo}
-                </div>
-                <div className="mt-2 text-xs text-white/80 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Show this ID at the event check-in counter.
-                </div>
-              </div>
-            </motion.div>
-          ) : registration.status === "pending" ? (
-            <div
-              className={`rounded-xl border-2 border-dashed p-5 ${statusMeta.idBoxClass}`}
-            >
-              <div
-                className={`text-[11px] font-semibold uppercase tracking-widest ${statusMeta.labelClass}`}
-              >
-                Participant ID
-              </div>
-              <div
-                className={`mt-1 text-3xl sm:text-4xl font-bold font-mono tracking-tight select-none ${statusMeta.idTextClass}`}
-              >
-                RD
-                <span className="blur-[3px] inline-block">XXX</span>
-              </div>
-              <div
-                className={`mt-2 text-xs flex items-center gap-1.5 ${statusMeta.labelClass}`}
-              >
-                <Clock className="w-3.5 h-3.5" />
-                ID will be assigned after your registration is verified.
-              </div>
+        <CardContent className="p-6 space-y-5">
+          {/* Status Badge */}
+          <div className="flex flex-col items-center gap-3">
+            <div className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-bold ${meta.badgeClass}`}>
+              <Icon className="size-5" />
+              {meta.label}
             </div>
-          ) : (
-            <div
-              className={`rounded-xl border-2 border-dashed p-5 ${statusMeta.idBoxClass}`}
-            >
-              <div
-                className={`text-[11px] font-semibold uppercase tracking-widest ${statusMeta.labelClass}`}
-              >
-                Participant ID
-              </div>
-              <div
-                className={`mt-1 text-xl font-semibold ${statusMeta.idTextClass}`}
-              >
-                No ID assigned
-              </div>
-              <div className={`mt-2 text-xs ${statusMeta.labelClass}`}>
-                Your registration was not approved. Please contact the
-                organizers if you believe this is an error.
-              </div>
-            </div>
-          )}
 
-          {/* Participant Info */}
-          <div>
-            <SectionTitle>Participant Information</SectionTitle>
-            <div className="grid sm:grid-cols-2 gap-x-4">
-              <InfoRow
-                icon={User}
-                label="Full Name"
-                value={registration.name}
-              />
-              <InfoRow
-                icon={Building2}
-                label="Institution"
-                value={registration.institutionName}
-              />
-              <InfoRow
-                icon={GraduationCap}
-                label="Academic Level"
-                value={academicLevelLabel(registration.academicLevel)}
-              />
-              <InfoRow
-                icon={GraduationCap}
-                label="Class / Year"
-                value={registration.academicValue}
-              />
-              <InfoRow
-                icon={Shirt}
-                label="T-Shirt Size"
-                value={registration.tShirtSize}
-              />
+            {registration.idNo && (
+              <div className="rounded-xl bg-slate-800/80 border border-slate-700 p-4 text-center w-full">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Participant ID</span>
+                <div className="text-3xl font-extrabold font-mono text-emerald-400 mt-1">{registration.idNo}</div>
+              </div>
+            )}
+          </div>
+
+          {/* Phone Number */}
+          <div className="flex items-center gap-3 rounded-xl bg-slate-800/60 border border-slate-700/50 p-4">
+            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <Phone className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Registered Phone</div>
+              <div className="text-base font-bold text-white font-mono">{registration.phoneNumber}</div>
             </div>
           </div>
 
-          {/* Payment Info */}
-          <div>
-            <SectionTitle>Payment Information</SectionTitle>
-            <div className="grid sm:grid-cols-2 gap-x-4">
-              <InfoRow
-                icon={Phone}
-                label="bKash Number"
-                value={registration.bkashNumber}
-              />
-              <InfoRow
-                icon={Hash}
-                label="Transaction ID"
-                value={registration.transactionId}
-              />
-            </div>
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <SectionTitle>Contact Information</SectionTitle>
-            <div className="grid sm:grid-cols-2 gap-x-4">
-              <InfoRow
-                icon={Phone}
-                label="Phone Number"
-                value={registration.phoneNumber}
-              />
-              <InfoRow
-                icon={MessageCircle}
-                label="WhatsApp Number"
-                value={registration.whatsappNumber}
-              />
-              <InfoRow
-                icon={MapPin}
-                label="Present Address"
-                value={registration.presentAddress}
-              />
-              <InfoRow
-                icon={HomeIcon}
-                label="Permanent Address"
-                value={registration.permanentAddress}
-              />
-            </div>
-          </div>
-
-          {/* Timeline */}
-          <div>
-            <SectionTitle>Application Timeline</SectionTitle>
-            <InfoRow
-              icon={Calendar}
-              label="Registered On"
-              value={formatDateTime(registration.createdAt)}
-            />
-          </div>
-
-          {/* WhatsApp button */}
-          {accepted ? (
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="pt-2"
+          {/* WhatsApp Community Link */}
+          <div className="rounded-xl border border-green-500/30 bg-green-950/40 p-5 text-center">
+            <p className="text-xs text-emerald-200/80 mb-3 font-sans">
+              📢 ইভেন্ট সম্পর্কে আপডেট পেতে আমাদের WhatsApp কমিউনিটিতে যোগ দিন:
+            </p>
+            <a
+              href="https://chat.whatsapp.com/LGSS9PZOSxF7vHIOxscPwm?s=cl&p=a&ilr=1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold text-sm px-5 py-2.5 transition-colors shadow-md shadow-green-600/20"
             >
-              <Button
-                asChild
-                className="w-full h-11 bg-brand-green hover:bg-brand-green/90 text-white shadow-sm"
-              >
-                <a
-                  href={EVENT_CONFIG.whatsappGroupLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Join the WhatsApp group (opens in a new tab)"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Join WhatsApp Group
-                </a>
-              </Button>
-            </motion.div>
-          ) : (
-            <div className="pt-2">
-              <Button
-                disabled
-                aria-disabled="true"
-                className="w-full h-11 bg-muted text-muted-foreground cursor-not-allowed"
-              >
-                <Lock className="w-4 h-4" />
-                Join WhatsApp Group (Available after acceptance)
-              </Button>
-            </div>
-          )}
+              <svg viewBox="0 0 24 24" className="size-5 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+              Join WhatsApp Community
+            </a>
+          </div>
         </CardContent>
-
-        <CardFooter className="border-t border-border bg-muted/30 px-6 py-4 flex flex-col sm:flex-row gap-3 justify-between">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("home")}
-            className="w-full sm:w-auto"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
+        <CardFooter className="bg-slate-950 border-t border-slate-800 px-6 py-4 flex justify-between">
+          <Button variant="ghost" onClick={() => navigate("home")} className="text-slate-400 hover:text-white">
+            <ArrowLeft className="mr-2 size-4" /> Portal Home
           </Button>
-          <Button
-            variant="outline"
-            onClick={onReset}
-            className="w-full sm:w-auto"
-          >
-            <RotateCw className="w-4 h-4" />
-            Search Another Number
+          <Button variant="outline" onClick={onReset} className="border-slate-700 text-white hover:bg-slate-800">
+            <RotateCw className="mr-2 size-4" /> Search Again
           </Button>
         </CardFooter>
       </Card>
     </motion.div>
+  );
+}
+
+// Result Card for Run Against Drugs 2026
+function RunAgainstDrugsResultCard({
+  registration,
+  onReset,
+}: {
+  registration: Registration;
+  onReset: () => void;
+}) {
+  const meta = STATUS_META[registration.status];
+  const Icon = meta.icon;
+
+  return (
+    <Card className="border-slate-800 bg-slate-900 text-white shadow-2xl overflow-hidden">
+      <CardHeader className="bg-slate-950 border-b border-slate-800 py-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <Badge variant="outline" className="border-slate-700 text-slate-300 mb-1">
+              Run Against Drugs 2026
+            </Badge>
+            <CardTitle className="text-2xl font-bold text-white">{registration.name}</CardTitle>
+          </div>
+          <Badge className={`border px-3 py-1 text-xs font-semibold ${meta.badgeClass}`}>
+            <Icon className="mr-1.5 size-3.5" />
+            {meta.label}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="p-6 space-y-4">
+        {registration.idNo && (
+          <div className="rounded-xl bg-slate-800/80 border border-slate-700 p-4 text-center">
+            <span className="text-xs text-slate-400 uppercase tracking-widest font-semibold">Participant ID Number</span>
+            <div className="text-3xl font-extrabold font-mono text-emerald-400 mt-1">{registration.idNo}</div>
+          </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <InfoRow icon={User} label="Full Name" value={registration.name} />
+          <InfoRow icon={Building2} label="Institution" value={registration.institutionName} />
+          <InfoRow icon={GraduationCap} label="Academic Level" value={registration.academicLevel} />
+          <InfoRow icon={Shirt} label="T-Shirt Size" value={registration.tShirtSize} />
+          <InfoRow icon={Phone} label="bKash Number" value={registration.bkashNumber} />
+          <InfoRow icon={Hash} label="Transaction ID" value={registration.transactionId} />
+          <InfoRow icon={Phone} label="Phone Number" value={registration.phoneNumber} />
+          <InfoRow icon={MessageCircle} label="WhatsApp Number" value={registration.whatsappNumber} />
+        </div>
+      </CardContent>
+      <CardFooter className="bg-slate-950 border-t border-slate-800 px-6 py-4 flex justify-between">
+        <Button variant="ghost" onClick={() => navigate("home")} className="text-slate-400 hover:text-white">
+          <ArrowLeft className="mr-2 size-4" /> Portal Home
+        </Button>
+        <Button variant="outline" onClick={onReset} className="border-slate-700 text-white hover:bg-slate-800">
+          <RotateCw className="mr-2 size-4" /> Search Again
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

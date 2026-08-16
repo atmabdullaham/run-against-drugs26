@@ -8,7 +8,7 @@ export const EVENT_CONFIG = {
   // Event date in Asia/Dhaka timezone (ISO string)
   eventDate: "2026-06-30T08:00:00+06:00",
   // Registration deadline in Asia/Dhaka timezone (ISO string)
-  registrationDeadline: "2026-06-28T23:59:59+06:00",
+  registrationDeadline: "2026-08-28T23:59:59+06:00",
   location: "Chawkbazar (Gulzar Mor), Chittagong",
   registrationFee: 100,
   bkashNumber: "01859902430",
@@ -107,4 +107,40 @@ export const ROUTES = {
   REGISTER: "#/register",
   MY_REGISTRATION: "#/my-registration",
   ADMIN: "#/admin",
+  HSC27_AF: "#/event/hsc27-af",
+  HSC27_AF_REGISTER: "#/event/hsc27-af/registration",
+  RUN26_AGAINST_DRUGS: "#/event/run26-agains-drugs",
 } as const;
+
+// HSC'27 Academic Fest Configuration
+export const HSC27_AF_CONFIG = {
+  name: "HSC'27 Academic Fest",
+  tagline: "Inspiring Academic Excellence",
+  organizer: "Bangladesh Islami Chhatrashibir - Chattogram City North",
+  eventDate: "2026-09-05T09:00:00+06:00",
+  registrationDeadline: "2026-08-20T23:59:59+06:00",
+  location: "Chattogram Press Club, Chattogram",
+  gifts: ["T-Shirt", "Notebook", "Snacks"],
+  eligibility: {
+    science: "GPA 5.00",
+    artsAndCommerce: "GPA 4.50",
+  },
+  contactPhone: "01882137803",
+} as const;
+
+export const ACADEMIC_FEST_GROUPS = ["Science", "Commerce", "Arts"] as const;
+
+export const EDUCATION_BOARDS = [
+  "Chattogram",
+  "Dhaka",
+  "Comilla",
+  "Rajshahi",
+  "Jessore",
+  "Barisal",
+  "Sylhet",
+  "Dinajpur",
+  "Mymensingh",
+  "Madrasah",
+  "Technical",
+] as const;
+

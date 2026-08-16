@@ -10,6 +10,9 @@ function parseHash(): ViewName {
   if (hash === "register") return "register";
   if (hash === "my-registration") return "my-registration";
   if (hash === "admin") return "admin";
+  if (hash === "event/hsc27-af") return "event/hsc27-af";
+  if (hash === "event/hsc27-af/registration") return "event/hsc27-af/registration";
+  if (hash === "event/run26-agains-drugs") return "event/run26-agains-drugs";
   return "home";
 }
 
