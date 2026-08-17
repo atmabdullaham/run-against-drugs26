@@ -130,11 +130,54 @@ export async function generateNextIdNo(): Promise<string> {
   return `${ID_NUMBER_PREFIX}${padded}`;
 }
 
-export async function generateNextAcademicFestIdNo(): Promise<string> {
-  const acceptedCount = await db.academicFestRegistration.count({
+import { ACADEMIC_FEST_QUOTAS } from "@/lib/constants";
+
+export async function generateNextAcademicFestIdNo(gender: "male" | "female" = "male"): Promise<string> {
+  // Check total capacity limit (max 300 accepted students)
+  const totalAccepted = await db.academicFestRegistration.count({
     where: { status: "accepted" },
   });
-  const nextNumber = acceptedCount + 1;
-  const padded = String(nextNumber).padStart(3, "0");
+
+  if (totalAccepted >= ACADEMIC_FEST_QUOTAS.MAX_TOTAL_CAPACITY) {
+    throw new Error(`Registration capacity reached! Maximum ${ACADEMIC_FEST_QUOTAS.MAX_TOTAL_CAPACITY} participants can be accepted.`);
+  }
+
+  const isFemale = gender.toLowerCase() === "female";
+  const range = isFemale ? ACADEMIC_FEST_QUOTAS.FEMALE_RANGE : ACADEMIC_FEST_QUOTAS.MALE_RANGE;
+
+  // Find all existing assigned IDs for academic fest
+  const existingRegistrations = await db.academicFestRegistration.findMany({
+    where: {
+      status: "accepted",
+      idNo: { not: null },
+    },
+    select: { idNo: true },
+  });
+
+  const usedNumbers = new Set<number>();
+  for (const reg of existingRegistrations) {
+    if (reg.idNo && reg.idNo.startsWith("AF")) {
+      const num = parseInt(reg.idNo.replace("AF", ""), 10);
+      if (!isNaN(num)) {
+        usedNumbers.add(num);
+      }
+    }
+  }
+
+  // Find first available number in the gender range
+  let assignedNum: number | null = null;
+  for (let i = range.start; i <= range.end; i++) {
+    if (!usedNumbers.has(i)) {
+      assignedNum = i;
+      break;
+    }
+  }
+
+  if (!assignedNum) {
+    const genderLabel = isFemale ? "Female (AF001-AF200)" : "Male (AF201-AF400)";
+    throw new Error(`The serial quota for ${genderLabel} participants is full.`);
+  }
+
+  const padded = String(assignedNum).padStart(3, "0");
   return `AF${padded}`;
 }

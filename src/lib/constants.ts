@@ -115,17 +115,31 @@ export const ROUTES = {
 // HSC'27 Academic Fest Configuration
 export const HSC27_AF_CONFIG = {
   name: "HSC'27 Academic Fest",
-  tagline: "Inspiring Academic Excellence",
+  tagline: "Get inspired • Dream bigger!",
+  specialGuests: "Meet the brilliant minds of BUET, DMC, DU and top career specialists at Academic Fest",
   organizer: "Bangladesh Islami Chhatrashibir - Chattogram City North",
-  eventDate: "2026-09-05T09:00:00+06:00",
+  eventDate: "2026-09-05T08:30:00+06:00",
+  eventTime: "8:30 AM",
   registrationDeadline: "2026-08-20T23:59:59+06:00",
   location: "Chattogram Press Club, Chattogram",
-  gifts: ["T-Shirt", "Notebook", "Snacks"],
+  gifts: ["T-shirt", "Note Book", "Snacks"],
+  seatLimitNotice: "Limited Seats. Don't Miss Out!",
   eligibility: {
     science: "GPA 5.00",
     artsAndCommerce: "GPA 4.50",
   },
   contactPhone: "01882137803",
+} as const;
+
+export const GENDER_OPTIONS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+] as const;
+
+export const ACADEMIC_FEST_QUOTAS = {
+  MAX_TOTAL_CAPACITY: 300,
+  FEMALE_RANGE: { start: 1, end: 200, prefix: "AF" },   // AF001 - AF200
+  MALE_RANGE: { start: 201, end: 400, prefix: "AF" },    // AF201 - AF400
 } as const;
 
 export const ACADEMIC_FEST_GROUPS = ["Science", "Commerce", "Arts"] as const;

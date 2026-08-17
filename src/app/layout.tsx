@@ -15,14 +15,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Run Against Drugs | Registration",
+  title: "Event Portal | Bangladesh Islami Chhatrashibir Chattogram City North",
   description:
-    "Register for Run Against Drugs 2025 — a marathon for a drug-free Bangladesh. Organized by Bangladesh Islami Chhatrashibir.",
+    "Event Portal | Bangladesh Islami Chhatrashibir Chattogram City North",
   keywords: [
-    "Run Against Drugs",
-    "Marathon",
+    "Event Portal",
+    "Chhatrashibir",
     "Bangladesh",
-    "Youth Against Drugs",
+    "Chattogram City North",
     "Registration",
   ],
   authors: [{ name: "Event Organizers" }],
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     icon: "/logo.png",
   },
   openGraph: {
-    title: "Run Against Drugs 2025",
-    description: "A marathon for a drug-free Bangladesh. Register now!",
+    title: "Event Portal | Bangladesh Islami Chhatrashibir Chattogram City North",
+    description: "Event Portal for Bangladesh Islami Chhatrashibir, Chattogram City North.",
     type: "website",
   },
 };

@@ -65,6 +65,7 @@ model SmsLog {
 model AcademicFestRegistration {
   id               String   @id @default(cuid())
   name             String
+  gender           String   @default("male") // "male" | "female"
   institutionName  String
   tShirtSize       String   // "S" | "M" | "L" | "XL" | "XXL" | "3XL"
   group            String   // "Science" | "Commerce" | "Arts"
@@ -78,11 +79,12 @@ model AcademicFestRegistration {
   permanentAddress String
   guestQuestion    String?  // Optional question for panelist/guest
   status           String   @default("pending") // "pending" | "accepted" | "rejected"
-  idNo             String?  // "AF001", "AF002", ... (set on accept)
+  idNo             String?  // "AF001", "AF002", ... (set on accept based on gender)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   @@index([status])
+  @@index([gender])
   @@index([phoneNumber])
   @@index([regNumber])
   @@index([rollNumber])

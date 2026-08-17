@@ -17,17 +17,16 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiError } from "@/lib/api";
-import type { Registration, AcademicFestRegistration, Summary } from "@/types";
+import type { AcademicFestRegistration } from "@/types";
 
 import { AdminLogin } from "./admin-login";
-import { SummaryCards } from "./summary-cards";
+import { SummaryCards, type AcademicFestSummaryData } from "./summary-cards";
 import { RegistrationTable } from "./registration-table";
+import { HSC27_AF_CONFIG } from "@/lib/constants";
 
 type TabKey = "all" | "pending" | "accepted" | "rejected";
-type AdminEventType = "hsc27-af" | "run26-against-drugs";
 
 interface SessionResponse {
   success: boolean;
@@ -36,7 +35,7 @@ interface SessionResponse {
 
 interface ActionResponse {
   success: boolean;
-  registration?: any;
+  registration?: AcademicFestRegistration;
   idNo?: string;
   smsSent?: boolean;
   smsMessage?: string;
@@ -49,7 +48,7 @@ interface DeleteResponse {
 }
 
 const TAB_CONFIG: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-  { key: "all", label: "All", icon: <Users className="h-3.5 w-3.5" /> },
+  { key: "all", label: "All Applicants", icon: <Users className="h-3.5 w-3.5" /> },
   { key: "pending", label: "Pending", icon: <Clock className="h-3.5 w-3.5" /> },
   { key: "accepted", label: "Accepted", icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
   { key: "rejected", label: "Rejected", icon: <XCircle className="h-3.5 w-3.5" /> },
@@ -61,10 +60,9 @@ export function AdminDashboard() {
   const [authed, setAuthed] = useState<boolean>(false);
   const [authChecking, setAuthChecking] = useState<boolean>(true);
 
-  const [selectedEvent, setSelectedEvent] = useState<AdminEventType>("hsc27-af");
-  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [registrations, setRegistrations] = useState<AcademicFestRegistration[]>([]);
   const [regsLoading, setRegsLoading] = useState<boolean>(false);
-  const [summary, setSummary] = useState<Summary | null>(null);
+  const [summary, setSummary] = useState<AcademicFestSummaryData | null>(null);
   const [summaryLoading, setSummaryLoading] = useState<boolean>(false);
 
   const [activeTab, setActiveTab] = useState<TabKey>("pending");
@@ -89,13 +87,11 @@ export function AdminDashboard() {
   }, []);
 
   // ---- Fetchers
-  const fetchRegistrations = useCallback(async (event: AdminEventType, tab: TabKey) => {
+  const fetchRegistrations = useCallback(async (tab: TabKey) => {
     setRegsLoading(true);
     try {
-      const endpoint = event === "hsc27-af"
-        ? `/api/admin/academic-fest/registrations?status=${tab}`
-        : `/api/admin/registrations?status=${tab}`;
-      const res = await api.get<{ success: boolean; registrations: any[] }>(endpoint);
+      const endpoint = `/api/admin/academic-fest/registrations?status=${tab}`;
+      const res = await api.get<{ success: boolean; registrations: AcademicFestRegistration[] }>(endpoint);
       setRegistrations(res.registrations || []);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "Failed to load registrations";
@@ -110,28 +106,62 @@ export function AdminDashboard() {
     }
   }, [toast]);
 
-  const fetchSummary = useCallback(async (event: AdminEventType) => {
+  const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
     try {
-      if (event === "hsc27-af") {
-        const res = await api.get<{ success: boolean; registrations: any[] }>(
-          "/api/admin/academic-fest/registrations?status=all"
-        );
-        const all = res.registrations || [];
-        setSummary({
-          total: all.length,
-          pending: all.filter((r) => r.status === "pending").length,
-          accepted: all.filter((r) => r.status === "accepted").length,
-          rejected: all.filter((r) => r.status === "rejected").length,
-          byTShirtSize: {},
-          byAcademicLevel: {},
-          acceptedByTShirtSize: {},
-          acceptedByAcademicLevel: {},
-        });
-      } else {
-        const res = await api.get<{ success: boolean; summary: Summary }>("/api/admin/summary");
-        setSummary(res.summary);
-      }
+      const res = await api.get<{ success: boolean; registrations: AcademicFestRegistration[] }>(
+        "/api/admin/academic-fest/registrations?status=all"
+      );
+      const all = res.registrations || [];
+
+      // Calculate Academic Fest breakdown metrics
+      const byGroup: Record<string, { total: number; accepted: number }> = {};
+      const byTShirtSize: Record<string, { total: number; accepted: number }> = {};
+
+      let totalMale = 0;
+      let acceptedMale = 0;
+      let totalFemale = 0;
+      let acceptedFemale = 0;
+
+      all.forEach((r) => {
+        const isAcc = r.status === "accepted";
+        const isFem = (r.gender || "").toLowerCase() === "female";
+
+        if (isFem) {
+          totalFemale++;
+          if (isAcc) acceptedFemale++;
+        } else {
+          totalMale++;
+          if (isAcc) acceptedMale++;
+        }
+
+        // Academic Group
+        if (r.group) {
+          if (!byGroup[r.group]) byGroup[r.group] = { total: 0, accepted: 0 };
+          byGroup[r.group].total++;
+          if (isAcc) byGroup[r.group].accepted++;
+        }
+
+        // T-Shirt Size
+        if (r.tShirtSize) {
+          if (!byTShirtSize[r.tShirtSize]) byTShirtSize[r.tShirtSize] = { total: 0, accepted: 0 };
+          byTShirtSize[r.tShirtSize].total++;
+          if (isAcc) byTShirtSize[r.tShirtSize].accepted++;
+        }
+      });
+
+      setSummary({
+        total: all.length,
+        pending: all.filter((r) => r.status === "pending").length,
+        accepted: all.filter((r) => r.status === "accepted").length,
+        rejected: all.filter((r) => r.status === "rejected").length,
+        totalMale,
+        acceptedMale,
+        totalFemale,
+        acceptedFemale,
+        byGroup,
+        byTShirtSize,
+      });
     } catch {
       // silent fallback
     } finally {
@@ -139,12 +169,12 @@ export function AdminDashboard() {
     }
   }, []);
 
-  // ---- Load data when authed or event changes
+  // ---- Load data when authed
   useEffect(() => {
     if (!authed) return;
-    fetchSummary(selectedEvent);
-    fetchRegistrations(selectedEvent, activeTab);
-  }, [authed, selectedEvent, activeTab, fetchRegistrations, fetchSummary]);
+    fetchSummary();
+    fetchRegistrations(activeTab);
+  }, [authed, activeTab, fetchRegistrations, fetchSummary]);
 
   function handleLogin() {
     setAuthed(true);
@@ -167,7 +197,7 @@ export function AdminDashboard() {
   }
 
   async function handleRefresh() {
-    await Promise.all([fetchSummary(selectedEvent), fetchRegistrations(selectedEvent, activeTab)]);
+    await Promise.all([fetchSummary(), fetchRegistrations(activeTab)]);
     toast({
       title: "Refreshed",
       description: "Latest registrations loaded.",
@@ -179,7 +209,7 @@ export function AdminDashboard() {
     action: "accept" | "reject" | "delete"
   ) {
     setActionLoading(id);
-    const baseApi = selectedEvent === "hsc27-af" ? "/api/admin/academic-fest/registrations" : "/api/admin/registrations";
+    const baseApi = "/api/admin/academic-fest/registrations";
     try {
       if (action === "delete") {
         const res = await api.delete<DeleteResponse>(`${baseApi}/${id}`);
@@ -198,7 +228,7 @@ export function AdminDashboard() {
             const smsNote = res.smsSent === false ? " (SMS delivery pending/failed)." : " Confirmation SMS sent!";
             toast({
               title: "Registration Accepted 🎉",
-              description: `ID: ${idNo}.${smsNote}`,
+              description: `Serial ID: ${idNo}.${smsNote}`,
             });
           } else {
             toast({
@@ -210,11 +240,11 @@ export function AdminDashboard() {
         }
       }
 
-      await Promise.all([fetchSummary(selectedEvent), fetchRegistrations(selectedEvent, activeTab)]);
+      await Promise.all([fetchSummary(), fetchRegistrations(activeTab)]);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "Action failed";
       toast({
-        title: "Action failed",
+        title: "Action Failed",
         description: msg,
         variant: "destructive",
       });
@@ -227,53 +257,49 @@ export function AdminDashboard() {
     if (!registrations.length) {
       toast({
         title: "No Data to Export",
-        description: "There are no registrations to download.",
+        description: "There are no registrations to download in the current filter.",
         variant: "destructive",
       });
       return;
     }
 
-    const headers = selectedEvent === "hsc27-af"
-      ? ["ID No", "Status", "Full Name", "Institution", "T-Shirt Size", "Group", "SSC Roll", "SSC Reg No", "Board", "Phone", "WhatsApp", "Present Address", "Permanent Address", "Question to Panelist", "Registered Date"]
-      : ["ID No", "Status", "Full Name", "Institution", "Level", "Class/Year", "T-Shirt", "bKash", "TrxID", "Phone", "WhatsApp", "Present Address", "Permanent Address", "Registered Date"];
+    const headers = [
+      "ID No",
+      "Status",
+      "Full Name",
+      "Gender",
+      "Institution",
+      "T-Shirt Size",
+      "Academic Group",
+      "SSC Roll Number",
+      "SSC Reg Number",
+      "Education Board",
+      "Phone Number",
+      "WhatsApp Number",
+      "Present Address",
+      "Permanent Address",
+      "Question to Panelist",
+      "Submitted Date",
+    ];
 
-    const rows = registrations.map((r) => {
-      if (selectedEvent === "hsc27-af") {
-        return [
-          r.idNo || "",
-          r.status || "",
-          r.name || "",
-          r.institutionName || "",
-          r.tShirtSize || "",
-          r.group || "",
-          r.rollNumber || "",
-          r.regNumber || "",
-          r.board || "",
-          r.phoneNumber || "",
-          r.whatsappNumber || "",
-          r.presentAddress || "",
-          r.permanentAddress || "",
-          r.guestQuestion || "",
-          r.createdAt || "",
-        ];
-      }
-      return [
-        r.idNo || "",
-        r.status || "",
-        r.name || "",
-        r.institutionName || "",
-        r.academicLevel || "",
-        r.academicValue || "",
-        r.tShirtSize || "",
-        r.bkashNumber || "",
-        r.transactionId || "",
-        r.phoneNumber || "",
-        r.whatsappNumber || "",
-        r.presentAddress || "",
-        r.permanentAddress || "",
-        r.createdAt || "",
-      ];
-    });
+    const rows = registrations.map((r) => [
+      r.idNo || "",
+      r.status || "",
+      r.name || "",
+      r.gender ? (r.gender === "female" ? "Female" : "Male") : "",
+      r.institutionName || "",
+      r.tShirtSize || "",
+      r.group || "",
+      r.rollNumber || "",
+      r.regNumber || "",
+      r.board || "",
+      r.phoneNumber || "",
+      r.whatsappNumber || "",
+      r.presentAddress || "",
+      r.permanentAddress || "",
+      r.guestQuestion || "",
+      r.createdAt || "",
+    ]);
 
     const csvContent = [headers, ...rows]
       .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","))
@@ -283,7 +309,7 @@ export function AdminDashboard() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `${selectedEvent}_registrations_${activeTab}.csv`);
+    link.setAttribute("download", `hsc27_academic_fest_registrations_${activeTab}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -292,35 +318,40 @@ export function AdminDashboard() {
       title: "Export Successful",
       description: `Downloaded ${registrations.length} registrations to CSV.`,
     });
-  }, [registrations, selectedEvent, activeTab, toast]);
+  }, [registrations, activeTab, toast]);
 
   if (authChecking) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-950 text-white">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
+      <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
       </div>
     );
   }
 
   if (!authed) {
-    return <AdminLogin onSuccess={handleLogin} />;
+    return <AdminLogin onLogin={handleLogin} />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-emerald-500 selection:text-white">
       {/* Top Header */}
-      <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm shadow-emerald-600/20">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="font-extrabold text-base leading-none text-white">
-                Admin Control Center
-              </h1>
-              <p className="text-xs text-slate-400 mt-0.5 font-medium">
-                Chhatrashibir Chattogram City North
+              <div className="flex items-center gap-2">
+                <h1 className="font-extrabold text-base leading-none text-slate-900">
+                  {HSC27_AF_CONFIG.name}
+                </h1>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 border border-emerald-200">
+                  <Sparkles className="size-2.5" /> Admin Portal
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                {HSC27_AF_CONFIG.organizer}
               </p>
             </div>
           </div>
@@ -329,8 +360,17 @@ export function AdminDashboard() {
             <Button
               variant="outline"
               size="sm"
+              onClick={handleExportCSV}
+              className="hidden sm:inline-flex rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-100 font-bold text-xs shadow-sm"
+            >
+              <Download className="mr-1.5 h-3.5 w-3.5 text-emerald-600" />
+              Export CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleRefresh}
-              className="border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 shadow-sm"
             >
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
               Refresh
@@ -339,7 +379,7 @@ export function AdminDashboard() {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="text-red-400 hover:bg-red-950/40 hover:text-red-300"
+              className="rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-700"
             >
               <LogOut className="mr-1.5 h-3.5 w-3.5" />
               Sign Out
@@ -349,74 +389,46 @@ export function AdminDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-        {/* Event Selection Switcher Bar */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-2 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 px-3">
-              Select Event:
-            </span>
-            <div className="grid grid-cols-2 gap-2 flex-1 sm:flex-initial">
-              <button
-                type="button"
-                onClick={() => setSelectedEvent("hsc27-af")}
-                className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-bold transition-all ${
-                  selectedEvent === "hsc27-af"
-                    ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
-                    : "bg-slate-950 text-slate-400 hover:text-white border border-slate-800"
-                }`}
-              >
-                <Sparkles className="size-3.5 text-amber-300" />
-                HSC&apos;27 Academic Fest
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedEvent("run26-against-drugs")}
-                className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-bold transition-all ${
-                  selectedEvent === "run26-against-drugs"
-                    ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
-                    : "bg-slate-950 text-slate-400 hover:text-white border border-slate-800"
-                }`}
-              >
-                Run Against Drugs 2026
-              </button>
-            </div>
-          </div>
-
-          <Button
-            size="sm"
-            onClick={handleExportCSV}
-            className="w-full sm:w-auto rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700 font-semibold text-xs"
-          >
-            <Download className="mr-1.5 h-3.5 w-3.5 text-emerald-400" />
-            Export CSV
-          </Button>
-        </div>
-
+      <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         {/* Summary Metric Cards */}
-        {summary && <SummaryCards summary={summary} loading={summaryLoading} />}
+        {summary && (
+          <SummaryCards
+            summary={summary}
+            loading={summaryLoading}
+          />
+        )}
 
-        {/* Status Filter Tabs */}
+        {/* Status Filter Tabs & Table */}
         <div className="space-y-4">
-          <Tabs
-            value={activeTab}
-            onValueChange={(val) => setActiveTab(val as TabKey)}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-4 bg-slate-900 border border-slate-800 p-1">
-              {TAB_CONFIG.map((t) => (
-                <TabsTrigger
-                  key={t.key}
-                  value={t.key}
-                  className="data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950 font-bold text-xs"
-                >
-                  <span className="mr-1.5 hidden sm:inline">{t.icon}</span>
-                  {t.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <Tabs
+              value={activeTab}
+              onValueChange={(val) => setActiveTab(val as TabKey)}
+              className="w-full sm:w-auto"
+            >
+              <TabsList className="grid w-full sm:w-[480px] grid-cols-4 bg-slate-200/80 border border-slate-200 p-1 rounded-xl h-11">
+                {TAB_CONFIG.map((t) => (
+                  <TabsTrigger
+                    key={t.key}
+                    value={t.key}
+                    className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm font-bold text-xs rounded-lg transition-all"
+                  >
+                    <span className="mr-1.5 hidden sm:inline">{t.icon}</span>
+                    {t.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+
+            <Button
+              size="sm"
+              onClick={handleExportCSV}
+              className="sm:hidden w-full rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs shadow-sm"
+            >
+              <Download className="mr-1.5 h-3.5 w-3.5 text-emerald-400" />
+              Export CSV ({registrations.length})
+            </Button>
+          </div>
 
           {/* Registrations Table Component */}
           <RegistrationTable
@@ -430,3 +442,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+export default AdminDashboard;

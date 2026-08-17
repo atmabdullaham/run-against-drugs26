@@ -58,12 +58,7 @@ export function Footer() {
               >
                 🔍 Check Registration Status
               </button>
-              <button
-                onClick={() => navigate("admin")}
-                className="text-sm text-slate-400 hover:text-slate-200 transition-colors text-left"
-              >
-                🔒 Admin Login
-              </button>
+
             </div>
           </div>
 

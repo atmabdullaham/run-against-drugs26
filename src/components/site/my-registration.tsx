@@ -136,7 +136,6 @@ function InfoRow({
 
 export function MyRegistration() {
   const { toast } = useToast();
-  const [selectedEvent, setSelectedEvent] = useState<EventType>("hsc27-af");
   const [term, setTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -169,40 +168,20 @@ export function MyRegistration() {
     const query = term.trim();
 
     try {
-      if (selectedEvent === "hsc27-af") {
-        // Query Academic Fest API endpoint
-        const isDigits = /^[0-9]+$/.test(query);
-        const queryParam = isDigits && query.length === 11 ? `phone=${encodeURIComponent(query)}` : `regNumber=${encodeURIComponent(query)}`;
-        const res = await fetch(`/api/event/hsc27-af/registration?${queryParam}`);
-        const data = await res.json();
+      // Query Academic Fest API endpoint
+      const isDigits = /^[0-9]+$/.test(query);
+      const queryParam = isDigits && query.length === 11 ? `phone=${encodeURIComponent(query)}` : `regNumber=${encodeURIComponent(query)}`;
+      const res = await fetch(`/api/event/hsc27-af/registration?${queryParam}`);
+      const data = await res.json();
 
-        if (!res.ok || !data.success) {
-          throw new Error(data.error || "Lookup failed");
-        }
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Lookup failed");
+      }
 
-        if (data.found && data.registration) {
-          setResult({ kind: "found-af", registration: data.registration });
-        } else {
-          setResult({ kind: "not-found", term: query });
-        }
+      if (data.found && data.registration) {
+        setResult({ kind: "found-af", registration: data.registration });
       } else {
-        // Query Run Against Drugs API endpoint
-        const data = await api.get<{
-          success: boolean;
-          found?: boolean;
-          registration?: Registration;
-          error?: string;
-        }>(`/api/registration/status?phone=${encodeURIComponent(query)}`);
-
-        if (!data.success) {
-          throw new Error(data.error || "Lookup failed");
-        }
-
-        if (data.found && data.registration) {
-          setResult({ kind: "found-rad", registration: data.registration });
-        } else {
-          setResult({ kind: "not-found", term: query });
-        }
+        setResult({ kind: "not-found", term: query });
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unable to reach server.";
@@ -239,80 +218,37 @@ export function MyRegistration() {
             Check Registration Status
           </h1>
           <p className="mt-2 text-sm sm:text-base text-slate-400 max-w-md mx-auto">
-            Select your event and enter your registered phone number or registration ID.
+            Enter your registered phone number or SSC registration number to check your status for HSC&apos;27 Academic Fest.
           </p>
-        </motion.div>
-
-        {/* Event Selection Switcher */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-6"
-        >
-          <div className="grid grid-cols-2 gap-3 p-1.5 rounded-2xl bg-slate-900 border border-slate-800">
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedEvent("hsc27-af");
-                handleReset();
-              }}
-              className={`flex items-center justify-center gap-2 rounded-xl py-3 px-3 text-xs sm:text-sm font-bold transition-all ${
-                selectedEvent === "hsc27-af"
-                  ? "bg-emerald-500 text-slate-950 shadow-md"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-              }`}
-            >
-              <Sparkles className="size-4 text-amber-300" />
-              <span>HSC&apos;27 Academic Fest</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedEvent("run26-against-drugs");
-                handleReset();
-              }}
-              className={`flex items-center justify-center gap-2 rounded-xl py-3 px-3 text-xs sm:text-sm font-bold transition-all ${
-                selectedEvent === "run26-against-drugs"
-                  ? "bg-emerald-500 text-slate-950 shadow-md"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-              }`}
-            >
-              <span>Run Against Drugs 2026</span>
-            </button>
-          </div>
         </motion.div>
 
         {/* Search Card */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.1 }}
         >
           <Card className="border-slate-800 bg-slate-900/90 text-white shadow-2xl backdrop-blur-md">
             <CardHeader>
               <CardTitle className="text-lg text-white">
-                {selectedEvent === "hsc27-af" ? "HSC'27 Academic Fest Lookup" : "Run Against Drugs Lookup"}
+                HSC&apos;27 Academic Fest Lookup
               </CardTitle>
               <CardDescription className="text-slate-400 text-xs">
-                {selectedEvent === "hsc27-af"
-                  ? "Enter the Mobile Phone Number (01XXXXXXXXX) or SSC Registration Number used during registration."
-                  : "Enter the 11-digit mobile number used during registration."}
+                Enter the Mobile Phone Number (01XXXXXXXXX) or SSC Registration Number used during registration.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSearch} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="term" className="text-slate-200">
-                    {selectedEvent === "hsc27-af" ? "Phone or Registration Number" : "Phone Number"}
+                    Phone or Registration Number
                   </Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <Input
                       id="term"
                       type="text"
-                      placeholder={selectedEvent === "hsc27-af" ? "01XXXXXXXXX or SSC Reg No" : "01XXXXXXXXX"}
+                      placeholder="01XXXXXXXXX or SSC Reg No"
                       value={term}
                       onChange={(e) => setTerm(e.target.value)}
                       className="pl-9 h-11 bg-slate-950 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500"
@@ -356,17 +292,15 @@ export function MyRegistration() {
                   </div>
                   <h3 className="text-xl font-bold text-white">No Registration Found</h3>
                   <p className="mt-2 text-sm text-slate-300">
-                    No record found for &quot;<span className="font-semibold text-amber-400">{result.term}</span>&quot; in {selectedEvent === "hsc27-af" ? "HSC'27 Academic Fest" : "Run Against Drugs 2026"}.
+                    No record found for &quot;<span className="font-semibold text-amber-400">{result.term}</span>&quot; in HSC&apos;27 Academic Fest.
                   </p>
                   <div className="mt-6 flex justify-center gap-3">
-                    {selectedEvent === "hsc27-af" && (
-                      <Button
-                        onClick={() => navigate("event/hsc27-af/registration")}
-                        className="bg-amber-400 font-bold text-slate-950 hover:bg-amber-300"
-                      >
-                        Register for HSC&apos;27 Fest
-                      </Button>
-                    )}
+                    <Button
+                      onClick={() => navigate("event/hsc27-af/registration")}
+                      className="bg-amber-400 font-bold text-slate-950 hover:bg-amber-300"
+                    >
+                      Register for HSC&apos;27 Fest
+                    </Button>
                     <Button variant="outline" onClick={handleReset} className="border-slate-700 text-white hover:bg-slate-800">
                       Try Another Number
                     </Button>
@@ -377,10 +311,6 @@ export function MyRegistration() {
 
             {result.kind === "found-af" && (
               <AcademicFestResultCard registration={result.registration} onReset={handleReset} />
-            )}
-
-            {result.kind === "found-rad" && (
-              <RunAgainstDrugsResultCard registration={result.registration} onReset={handleReset} />
             )}
           </AnimatePresence>
         </div>

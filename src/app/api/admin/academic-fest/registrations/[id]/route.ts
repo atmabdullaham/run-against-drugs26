@@ -55,7 +55,9 @@ export async function PATCH(
       }
 
       const updated = await db.$transaction(async (tx) => {
-        const idNo = await generateNextAcademicFestIdNo();
+        const idNo = await generateNextAcademicFestIdNo(
+          (registration.gender as "male" | "female") || "male"
+        );
         return tx.academicFestRegistration.update({
           where: { id },
           data: {
@@ -93,9 +95,10 @@ export async function PATCH(
     }
   } catch (error) {
     console.error("Update Academic Fest registration error:", error);
+    const message = error instanceof Error ? error.message : "Failed to update registration";
     return NextResponse.json(
-      { success: false, error: "Failed to update registration" },
-      { status: 500 }
+      { success: false, error: message },
+      { status: 400 }
     );
   }
 }

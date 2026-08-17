@@ -56,11 +56,14 @@ export interface ApiResponse<T = unknown> {
   error?: string;
 }
 
+export type Gender = "male" | "female";
+
 export type AcademicFestGroup = "Science" | "Commerce" | "Arts";
 
 export interface AcademicFestRegistration {
   id: string;
   name: string;
+  gender: Gender;
   institutionName: string;
   tShirtSize: TShirtSize;
   group: AcademicFestGroup;
@@ -81,6 +84,7 @@ export interface AcademicFestRegistration {
 
 export interface AcademicFestRegistrationInput {
   name: string;
+  gender: Gender;
   institutionName: string;
   tShirtSize: TShirtSize;
   group: AcademicFestGroup;

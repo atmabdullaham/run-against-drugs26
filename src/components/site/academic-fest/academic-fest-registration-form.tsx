@@ -44,11 +44,13 @@ import {
   ACADEMIC_FEST_GROUPS,
   EDUCATION_BOARDS,
   TSHIRT_SIZES,
+  GENDER_OPTIONS,
 } from "@/lib/constants";
 import type { AcademicFestGroup, TShirtSize } from "@/types";
 
 interface FormState {
   name: string;
+  gender: "male" | "female" | "";
   institutionName: string;
   tShirtSize: TShirtSize | "";
   group: AcademicFestGroup | "";
@@ -65,6 +67,7 @@ interface FormState {
 
 const INITIAL_FORM: FormState = {
   name: "",
+  gender: "",
   institutionName: "",
   tShirtSize: "",
   group: "",
@@ -92,6 +95,9 @@ function validateField(field: keyof FormState, value: unknown, formState: FormSt
     case "name":
       if (!strVal.trim()) return "Full name is required";
       if (strVal.trim().length < 3) return "Name must be at least 3 characters";
+      return undefined;
+    case "gender":
+      if (!strVal) return "Please select your Gender";
       return undefined;
     case "institutionName":
       if (!strVal.trim()) return "Institution name is required";
@@ -312,7 +318,7 @@ export function AcademicFestRegistrationForm() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-slate-200 font-medium">
-                      Full Name <span className="text-red-400">*</span>
+                       Full Name <span className="text-red-400">*</span>
                     </Label>
                     <Input
                       id="name"
@@ -330,6 +336,38 @@ export function AcademicFestRegistrationForm() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="gender" className="text-slate-200 font-medium">
+                      Gender <span className="text-red-400">*</span>
+                    </Label>
+                    <Select
+                      value={form.gender}
+                      onValueChange={(val) => handleChange("gender", val)}
+                    >
+                      <SelectTrigger
+                        id="gender"
+                        onBlur={() => handleBlur("gender")}
+                        className={`bg-slate-950/80 border-slate-700 text-white ${
+                          errors.gender && touched.gender ? "border-red-500" : ""
+                        }`}
+                      >
+                        <SelectValue placeholder="Select Gender" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                        {GENDER_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.gender && touched.gender && (
+                      <p className="text-xs text-red-400">{errors.gender}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
                     <Label htmlFor="institutionName" className="text-slate-200 font-medium">
                       Institution Name <span className="text-red-400">*</span>
                     </Label>
@@ -345,6 +383,36 @@ export function AcademicFestRegistrationForm() {
                     />
                     {errors.institutionName && touched.institutionName && (
                       <p className="text-xs text-red-400">{errors.institutionName}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="group" className="text-slate-200 font-medium">
+                      Academic Group <span className="text-red-400">*</span>
+                    </Label>
+                    <Select
+                      value={form.group}
+                      onValueChange={(val) => handleChange("group", val)}
+                    >
+                      <SelectTrigger
+                        id="group"
+                        onBlur={() => handleBlur("group")}
+                        className={`bg-slate-950/80 border-slate-700 text-white ${
+                          errors.group && touched.group ? "border-red-500" : ""
+                        }`}
+                      >
+                        <SelectValue placeholder="Select Group" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                        {ACADEMIC_FEST_GROUPS.map((g) => (
+                          <SelectItem key={g} value={g}>
+                            {g}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.group && touched.group && (
+                      <p className="text-xs text-red-400">{errors.group}</p>
                     )}
                   </div>
                 </div>
@@ -377,36 +445,6 @@ export function AcademicFestRegistrationForm() {
                     </Select>
                     {errors.tShirtSize && touched.tShirtSize && (
                       <p className="text-xs text-red-400">{errors.tShirtSize}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="group" className="text-slate-200 font-medium">
-                      Academic Group <span className="text-red-400">*</span>
-                    </Label>
-                    <Select
-                      value={form.group}
-                      onValueChange={(val) => handleChange("group", val)}
-                    >
-                      <SelectTrigger
-                        id="group"
-                        onBlur={() => handleBlur("group")}
-                        className={`bg-slate-950/80 border-slate-700 text-white ${
-                          errors.group && touched.group ? "border-red-500" : ""
-                        }`}
-                      >
-                        <SelectValue placeholder="Select Group" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-700 text-white">
-                        {ACADEMIC_FEST_GROUPS.map((g) => (
-                          <SelectItem key={g} value={g}>
-                            {g}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.group && touched.group && (
-                      <p className="text-xs text-red-400">{errors.group}</p>
                     )}
                   </div>
                 </div>

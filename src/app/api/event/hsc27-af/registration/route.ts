@@ -27,6 +27,9 @@ export async function POST(request: NextRequest) {
     if (!data.name || data.name.trim().length < 3) {
       errors.name = "Full name is required (min 3 characters)";
     }
+    if (!data.gender || !["male", "female"].includes(data.gender.toLowerCase())) {
+      errors.gender = "Please select a valid Gender (Male or Female)";
+    }
     if (!data.institutionName || data.institutionName.trim().length < 2) {
       errors.institutionName = "Institution name is required";
     }
@@ -69,6 +72,7 @@ export async function POST(request: NextRequest) {
 
     const cleaned = {
       name: data.name!.trim(),
+      gender: data.gender!.toLowerCase() as "male" | "female",
       institutionName: data.institutionName!.trim(),
       tShirtSize: data.tShirtSize!,
       group: data.group!,
