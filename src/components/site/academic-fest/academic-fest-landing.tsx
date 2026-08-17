@@ -392,6 +392,50 @@ export function AcademicFestLanding() {
             </Card>
           </div>
 
+          {/* Important Verification & Selection Policy Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mt-10 rounded-3xl border border-amber-400/40 bg-gradient-to-br from-amber-950/40 via-slate-800/90 to-emerald-950/40 p-6 sm:p-8 backdrop-blur-md shadow-2xl"
+          >
+            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-amber-400/20 text-yellow-300 border border-amber-400/30 shadow-lg">
+                <Sparkles className="size-6 text-yellow-400" />
+              </div>
+              <div className="space-y-3 flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-white">
+                    Important Registration &amp; Verification Notice
+                  </h3>
+                  <span className="hidden sm:inline-flex rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-bold text-yellow-300 border border-amber-400/30">
+                    Policy
+                  </span>
+                </div>
+
+                <p className="text-sm sm:text-base text-slate-200 leading-relaxed">
+                  After verifying your information, the organizing team will process your registration. The team reserves the right to accept or reject any application without stating a reason. Seats are limited. Only accepted students will receive a confirmation message on their provided phone number.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                  <div className="flex items-center gap-2.5 rounded-xl bg-slate-900/60 p-3 border border-slate-700/60 text-xs text-slate-300">
+                    <CheckCircle2 className="size-4 text-emerald-400 shrink-0" />
+                    <span>Thorough info verification</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-xl bg-slate-900/60 p-3 border border-slate-700/60 text-xs text-slate-300">
+                    <Clock className="size-4 text-amber-400 shrink-0" />
+                    <span>Limited capacity (300 seats)</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-xl bg-slate-900/60 p-3 border border-slate-700/60 text-xs text-slate-300">
+                    <Phone className="size-4 text-sky-400 shrink-0" />
+                    <span>SMS sent to accepted students</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Bottom Action Footer Banner */}
           <div className="mt-14 text-center">
             <Button

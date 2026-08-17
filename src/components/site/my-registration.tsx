@@ -42,10 +42,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
 import { navigate } from "@/lib/nav";
-import { EVENT_CONFIG, HSC27_AF_CONFIG, ACADEMIC_LEVELS } from "@/lib/constants";
-import { api, ApiError } from "@/lib/api";
-import type { Registration, AcademicFestRegistration, RegistrationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { EVENT_CONFIG } from "@/lib/constants";
+import { api } from "@/lib/api";
+import type { Registration, AcademicFestRegistration, RegistrationStatus } from "@/types";
 
 type EventType = "hsc27-af" | "run26-against-drugs";
 
@@ -170,13 +170,16 @@ export function MyRegistration() {
     try {
       // Query Academic Fest API endpoint
       const isDigits = /^[0-9]+$/.test(query);
-      const queryParam = isDigits && query.length === 11 ? `phone=${encodeURIComponent(query)}` : `regNumber=${encodeURIComponent(query)}`;
-      const res = await fetch(`/api/event/hsc27-af/registration?${queryParam}`);
-      const data = await res.json();
+      const queryParam =
+        isDigits && query.length === 11
+          ? `phone=${encodeURIComponent(query)}`
+          : `regNumber=${encodeURIComponent(query)}`;
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Lookup failed");
-      }
+      const data = await api.get<{
+        success: boolean;
+        found: boolean;
+        registration?: AcademicFestRegistration;
+      }>(`/api/event/hsc27-af/registration?${queryParam}`);
 
       if (data.found && data.registration) {
         setResult({ kind: "found-af", registration: data.registration });
@@ -376,6 +379,11 @@ function AcademicFestResultCard({
               <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Registered Phone</div>
               <div className="text-base font-bold text-white font-mono">{registration.phoneNumber}</div>
             </div>
+          </div>
+
+          {/* Verification Policy Notice */}
+          <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-4 text-xs text-amber-200/90 leading-relaxed text-left">
+            ℹ️ <strong>Admission Policy:</strong> After verifying your information, the organizing team will process your registration. The team reserves the right to accept or reject any application without stating a reason. Seats are limited. Only accepted students will receive a confirmation message on their provided phone number.
           </div>
 
           {/* WhatsApp Community Link */}

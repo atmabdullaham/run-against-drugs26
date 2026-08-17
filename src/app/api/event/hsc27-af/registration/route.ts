@@ -136,10 +136,21 @@ export async function POST(request: NextRequest) {
         regNumber: registration.regNumber,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Academic Fest registration submit error:", error);
+
+    // Prisma Unique Constraint Violation (P2002)
+    if (error?.code === "P2002") {
+      const target = Array.isArray(error.meta?.target) ? error.meta.target.join(", ") : "provided details";
+      return NextResponse.json(
+        { success: false, error: `A registration with this ${target} already exists.` },
+        { status: 409 }
+      );
+    }
+
+    const message = error instanceof Error ? error.message : "Registration failed. Please try again.";
     return NextResponse.json(
-      { success: false, error: "Registration failed. Please try again." },
+      { success: false, error: "Registration failed. Please try again in a few moments." },
       { status: 500 }
     );
   }

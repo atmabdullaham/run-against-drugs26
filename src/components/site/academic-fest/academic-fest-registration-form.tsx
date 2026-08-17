@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { navigate } from "@/lib/nav";
+import { api, ApiError } from "@/lib/api";
 import {
   HSC27_AF_CONFIG,
   ACADEMIC_FEST_GROUPS,
@@ -226,19 +227,22 @@ export function AcademicFestRegistrationForm() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/event/hsc27-af/registration", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          permanentAddress: form.sameAsPresent ? form.presentAddress : form.permanentAddress,
-        }),
+      const json = await api.post<{
+        success: boolean;
+        data: {
+          id: string;
+          name: string;
+          phoneNumber: string;
+          rollNumber: string;
+          regNumber: string;
+        };
+      }>("/api/event/hsc27-af/registration", {
+        ...form,
+        permanentAddress: form.sameAsPresent ? form.presentAddress : form.permanentAddress,
       });
 
-      const json = await res.json();
-
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Registration failed");
+      if (!json.success || !json.data) {
+        throw new Error("Registration failed. Please try again.");
       }
 
       setSuccessData(json.data);
@@ -247,7 +251,21 @@ export function AcademicFestRegistrationForm() {
         description: `Welcome ${json.data.name}! Your registration has been submitted successfully.`,
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
+      const apiErr = err as ApiError;
+      if (apiErr?.fields) {
+        setErrors(apiErr.fields as FieldErrors);
+        setTouched(
+          Object.keys(apiErr.fields).reduce((acc, k) => {
+            acc[k] = true;
+            return acc;
+          }, {} as Record<string, boolean>)
+        );
+      }
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please check your connection and try again.";
+
       toast({
         title: "Registration Failed",
         description: message,
@@ -663,8 +681,25 @@ export function AcademicFestRegistrationForm() {
                 </div>
               </div>
 
+              {/* Verification & Admission Policy Notice Box */}
+              <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-950/40 via-slate-900 to-emerald-950/40 p-4 sm:p-5 text-left">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-400/20 text-yellow-400 border border-amber-400/30 mt-0.5">
+                    <Sparkles className="size-4" />
+                  </div>
+                  <div className="space-y-1 text-xs leading-relaxed text-slate-200">
+                    <div className="font-bold text-yellow-300 text-sm flex items-center gap-1.5">
+                      Important Registration Policy
+                    </div>
+                    <p>
+                      After verifying your information, the organizing team will process your registration. The team reserves the right to accept or reject any application without stating a reason. Seats are limited. Only accepted students will receive a confirmation message on their provided phone number.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Submit Button */}
-              <div className="pt-4">
+              <div className="pt-2">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
@@ -723,8 +758,13 @@ export function AcademicFestRegistrationForm() {
                 </div>
               </div>
 
+              {/* Policy note in Modal */}
+              <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-950/30 p-3.5 text-left text-xs text-amber-200/90 leading-relaxed">
+                ℹ️ <strong>Note:</strong> After verifying your information, the organizing team will process your registration. Seats are limited. Only accepted students will receive a confirmation message on their provided phone number.
+              </div>
+
               {/* WhatsApp Community Link */}
-              <div className="mt-5 rounded-xl border border-green-500/30 bg-green-950/40 p-4 text-center">
+              <div className="mt-4 rounded-xl border border-green-500/30 bg-green-950/40 p-4 text-center">
                 <p className="text-xs text-emerald-200/80 mb-3 font-sans">
                   📢 ইভেন্ট সম্পর্কে আপডেট পেতে আমাদের WhatsApp কমিউনিটিতে যোগ দিন:
                 </p>
