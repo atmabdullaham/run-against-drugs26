@@ -111,13 +111,19 @@ export function Hero() {
           className="flex flex-col items-center text-center"
         >
           {/* Tagline pill */}
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center gap-2 mb-6">
             <Badge
               variant="secondary"
-              className="mb-6 gap-2 rounded-full border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-md"
+              className="gap-2 rounded-full border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-md"
             >
               <Activity className="size-3.5 text-[#ffa500]" />
               {EVENT_CONFIG.tagline}
+            </Badge>
+            <Badge
+              variant="outline"
+              className="border-red-400/50 bg-red-950/40 px-3 py-1.5 text-xs font-bold text-red-300 backdrop-blur-md"
+            >
+              🔴 REGISTRATION CLOSED • ARCHIVE EVENT
             </Badge>
           </motion.div>
 
@@ -139,8 +145,7 @@ export function Hero() {
             variants={itemVariants}
             className="mt-6 max-w-2xl text-pretty text-base text-white/85 sm:text-lg md:text-xl"
           >
-            {EVENT_CONFIG.subtitle}. Lace up your shoes and join hundreds of
-            young changemakers running for a healthier, drug-free Bangladesh.
+            {EVENT_CONFIG.subtitle}. Successfully organized with youth participants running for a healthier, drug-free Bangladesh.
           </motion.p>
 
           {/* Date + location badges */}
@@ -163,33 +168,22 @@ export function Hero() {
             variants={itemVariants}
             className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row"
           >
-            {isClosed ? (
-              <Button
-                size="lg"
-                onClick={() => navigate("my-registration")}
-                className="bg-gradient-navy w-full rounded-full px-8 py-3 text-base font-semibold text-white shadow-navy transition-transform hover:scale-105 hover:text-white sm:w-auto"
-              >
-                Check Registration Status
-                <ArrowRight className="size-5" />
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                onClick={() => navigate("register")}
-                className="bg-gradient-red w-full rounded-full px-8 py-3 text-base font-semibold text-white shadow-red transition-transform hover:scale-105 hover:text-white sm:w-auto"
-              >
-                Register Now
-                <ArrowRight className="size-5" />
-              </Button>
-            )}
+            <Button
+              size="lg"
+              onClick={() => navigate("my-registration")}
+              className="bg-gradient-to-r from-emerald-500 to-teal-500 w-full rounded-full px-8 py-3 text-base font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-transform hover:scale-105 hover:from-emerald-400 hover:to-teal-400 sm:w-auto"
+            >
+              Check Registration Status
+              <ArrowRight className="size-5 ml-2" />
+            </Button>
             <Button
               size="lg"
               variant="outline"
               onClick={onLearnMore}
               className="w-full rounded-full border-white/40 bg-white/5 px-8 py-3 text-base font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/15 hover:text-white sm:w-auto"
             >
-              Learn More
-              <ChevronDown className="size-5" />
+              Event Details
+              <ChevronDown className="size-5 ml-1" />
             </Button>
           </motion.div>
 

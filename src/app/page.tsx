@@ -75,6 +75,19 @@ export default function Home() {
     );
   }
 
+  // Run Against Drugs registration view
+  if (view === "register") {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-950">
+        <Navbar />
+        <main className="flex-1 pt-16 sm:pt-20">
+          <RegistrationForm />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   // Run Against Drugs 2026 event view
   if (view === "event/run26-agains-drugs") {
     return (

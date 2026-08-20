@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Calendar,
   MapPin,
@@ -16,8 +16,10 @@ import {
   Sparkles,
   Phone,
   GraduationCap,
-  Users,
   Lightbulb,
+  Search,
+  Archive,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,50 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { HSC27_AF_CONFIG } from "@/lib/constants";
 import { navigate } from "@/lib/nav";
 
-interface TimeLeft {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-}
-
-function getTimeLeft(target: number): TimeLeft {
-  const diff = target - Date.now();
-  if (diff <= 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
-  }
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((diff / (1000 * 60)) % 60);
-  const seconds = Math.floor((diff / 1000) % 60);
-  return { days, hours, minutes, seconds };
-}
-
-function pad(n: number): string {
-  return n.toString().padStart(2, "0");
-}
-
 export function AcademicFestLanding() {
-  const target = React.useMemo(
-    () => new Date(HSC27_AF_CONFIG.registrationDeadline).getTime(),
-    []
-  );
-  const [timeLeft, setTimeLeft] = React.useState<TimeLeft>(() =>
-    getTimeLeft(target)
-  );
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-    setTimeLeft(getTimeLeft(target));
-    const id = setInterval(() => {
-      setTimeLeft(getTimeLeft(target));
-    }, 1000);
-    return () => clearInterval(id);
-  }, [target]);
-
-  const isClosed = mounted && target - Date.now() <= 0;
-
   return (
     <div className="min-h-screen bg-slate-900 text-white selection:bg-emerald-500 selection:text-white">
       {/* Hero Section with Poster Theme */}
@@ -94,16 +53,7 @@ export function AcademicFestLanding() {
               بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
             </motion.p>
 
-            {/* Organizer Pill Badge */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-950/70 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-300 backdrop-blur-md shadow-lg shadow-emerald-950/50"
-            >
-              <Sparkles className="size-3.5 text-yellow-400" />
-              {HSC27_AF_CONFIG.organizer}
-            </motion.div>
+
 
             {/* Main Poster Typography */}
             <motion.div
@@ -123,6 +73,17 @@ export function AcademicFestLanding() {
               <h1 className="mt-1 text-4xl font-black tracking-tight text-white sm:text-6xl md:text-7xl uppercase drop-shadow-md">
                 ACADEMIC FEST
               </h1>
+            </motion.div>
+
+            {/* Event Status Banner (Upcoming Event • Registration Closed) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.25 }}
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-950/50 px-5 py-2 text-xs sm:text-sm font-bold text-amber-300 shadow-lg backdrop-blur-md"
+            >
+              <span className="flex size-2 rounded-full bg-amber-400 animate-pulse" />
+              REGISTRATION CLOSED • EVENT ON 5TH SEPTEMBER 2026
             </motion.div>
 
             {/* Poster Highlight: Special Guests from BUET, DMC, DU */}
@@ -156,7 +117,7 @@ export function AcademicFestLanding() {
               </div>
             </motion.div>
 
-            {/* Quick Event Meta Cards (Date, Time, Venue, Deadline) */}
+            {/* Quick Event Meta Cards (Date, Time, Venue, Status) */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -196,89 +157,96 @@ export function AcademicFestLanding() {
                 </div>
               </div>
 
-              {/* Registration Deadline */}
-              <div className="flex items-center gap-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-950/60 p-4 backdrop-blur-md">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-yellow-400/20 text-yellow-400">
-                  <Award className="size-5" />
+              {/* Registration Status */}
+              <div className="flex items-center gap-3.5 rounded-2xl border border-amber-500/30 bg-emerald-950/60 p-4 backdrop-blur-md">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400">
+                  <Clock className="size-5" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-yellow-400/90">Last Date</p>
-                  <p className="text-sm sm:text-base font-extrabold text-white">20th August</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-amber-300/90">Registration</p>
+                  <p className="text-sm sm:text-base font-extrabold text-amber-300">Closed</p>
                 </div>
               </div>
             </motion.div>
 
-            {/* Main Call to Action Button */}
+            {/* Call to Action Button */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
-              className="mt-8 flex flex-col items-center gap-3"
+              className="mt-8 flex flex-wrap items-center justify-center gap-4"
             >
               <Button
                 size="lg"
-                disabled={isClosed}
-                onClick={() => navigate("event/hsc27-af/registration")}
-                className="group relative overflow-hidden rounded-full bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 px-10 py-7 text-lg font-extrabold text-slate-950 shadow-xl shadow-yellow-500/25 transition-all hover:scale-105 hover:shadow-yellow-500/40 disabled:opacity-50"
+                onClick={() => navigate("my-registration")}
+                className="group relative overflow-hidden rounded-full bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 px-8 py-6 text-base font-extrabold text-slate-950 shadow-xl shadow-yellow-500/25 transition-all hover:scale-105 hover:shadow-yellow-500/40"
               >
-                {isClosed ? "Registration Closed" : "Click for Registration"}
+                <Search className="mr-2 size-5 text-slate-950" />
+                Check Registration Status
                 <ArrowRight className="ml-2 size-5 transition-transform group-hover:translate-x-1" />
               </Button>
 
-              <p className="text-xs font-bold text-yellow-300 tracking-wide">
-                &ldquo;{HSC27_AF_CONFIG.seatLimitNotice}&rdquo;
-              </p>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate("home")}
+                className="rounded-full border-slate-700 bg-slate-900/80 px-8 py-6 text-base font-semibold text-white hover:bg-slate-800"
+              >
+                <ArrowLeft className="mr-2 size-5 text-emerald-400" />
+                Back to Portal Home
+              </Button>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Countdown Timer Section */}
-      <section className="relative border-y border-emerald-800/40 bg-emerald-950/50 py-14">
-        <div className="mx-auto max-w-5xl px-4 text-center">
-          <div className="mb-3 inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-yellow-400">
-            <Clock className="size-4" />
-            Registration Countdown
+      {/* Event Registration Closed Section (Replaces Countdown Timer) */}
+      <section className="relative border-y border-emerald-800/40 bg-emerald-950/60 py-14">
+        <div className="mx-auto max-w-4xl px-4 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-950/50 px-4 py-1.5 text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-300 mb-4">
+            <Clock className="size-4 text-amber-400" />
+            Registration Closed • Event On 5th September 2026
           </div>
 
-          <h2 className="text-2xl font-extrabold text-white sm:text-3xl">
-            {isClosed ? "Registration Has Ended" : "Time Left to Register"}
+          <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
+            Registration Has Closed
           </h2>
 
-          {!isClosed ? (
-            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 max-w-3xl mx-auto">
-              {[
-                { label: "Days", value: timeLeft.days },
-                { label: "Hours", value: timeLeft.hours },
-                { label: "Minutes", value: timeLeft.minutes },
-                { label: "Seconds", value: timeLeft.seconds },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-2xl border border-emerald-500/30 bg-emerald-900/40 p-5 backdrop-blur-sm shadow-md"
-                >
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.div
-                      key={item.value}
-                      initial={{ y: -10, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: 10, opacity: 0 }}
-                      className="font-mono text-4xl font-black text-yellow-400 sm:text-5xl"
-                    >
-                      {mounted ? pad(item.value) : "00"}
-                    </motion.div>
-                  </AnimatePresence>
-                  <div className="mt-2 text-xs font-bold uppercase tracking-wider text-emerald-200/80">
-                    {item.label}
-                  </div>
-                </div>
-              ))}
+          <p className="mt-4 text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            The registration window for the <strong className="text-yellow-300">HSC&apos;27 Academic Fest</strong> has officially closed. Thank you to all students who submitted their applications. Our team is actively reviewing and verifying applications.
+          </p>
+
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto text-left">
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-900/40 p-5 backdrop-blur-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <CheckCircle2 className="size-5 text-emerald-400 shrink-0" />
+                <h3 className="font-bold text-white text-base">Check Your Status</h3>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                If you have already submitted your form, you can look up your registration and verification status anytime.
+              </p>
             </div>
-          ) : (
-            <p className="mt-4 text-emerald-200/80 text-sm font-medium">
-              The registration deadline (20th August) has passed. Thank you for your overwhelming response!
-            </p>
-          )}
+
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-900/40 p-5 backdrop-blur-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <Phone className="size-5 text-yellow-400 shrink-0" />
+                <h3 className="font-bold text-white text-base">SMS Confirmation</h3>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Accepted participants will receive a confirmation SMS on their provided mobile number prior to the event date.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <Button
+              onClick={() => navigate("my-registration")}
+              className="rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-8 py-5 text-sm sm:text-base shadow-lg shadow-emerald-500/20"
+            >
+              <Search className="mr-2 size-4" />
+              Look Up My Registration Record
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -295,7 +263,7 @@ export function AcademicFestLanding() {
                   </div>
                   <div>
                     <h3 className="text-2xl font-extrabold text-white">Gift Hamper</h3>
-                    <p className="text-xs text-emerald-300 font-medium">Included for all registered participants</p>
+                    <p className="text-xs text-emerald-300 font-medium">Included for all accepted participants</p>
                   </div>
                 </div>
 
@@ -341,7 +309,7 @@ export function AcademicFestLanding() {
                     <Award className="size-6" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-extrabold text-white">Eligibility</h3>
+                    <h3 className="text-2xl font-extrabold text-white">Eligibility Criteria</h3>
                     <p className="text-xs text-emerald-300 font-medium">SSC Result criteria for HSC&apos;27 batch</p>
                   </div>
                 </div>
@@ -355,7 +323,7 @@ export function AcademicFestLanding() {
                       </span>
                     </div>
                     <p className="mt-1.5 text-xs text-slate-400 font-medium">
-                      Must have achieved minimum GPA 5.00 in SSC examination.
+                      Minimum GPA 5.00 in SSC examination.
                     </p>
                   </div>
 
@@ -367,7 +335,7 @@ export function AcademicFestLanding() {
                       </span>
                     </div>
                     <p className="mt-1.5 text-xs text-slate-400 font-medium">
-                      Must have achieved minimum GPA 4.50 in SSC examination.
+                      Minimum GPA 4.50 in SSC examination.
                     </p>
                   </div>
 
@@ -379,13 +347,13 @@ export function AcademicFestLanding() {
                       </span>
                     </div>
                     <p className="mt-1.5 text-xs text-slate-400 font-medium">
-                      Must have achieved minimum GPA 4.50 in SSC examination.
+                      Minimum GPA 4.50 in SSC examination.
                     </p>
                   </div>
 
                   <div className="mt-5 flex items-center gap-2 text-xs text-slate-400 font-medium">
                     <CheckCircle2 className="size-4 text-emerald-400 shrink-0" />
-                    <span>Provide your 6-digit SSC Roll Number &amp; Registration Number.</span>
+                    <span>Selected students will receive SMS notification with ID.</span>
                   </div>
                 </div>
               </CardContent>
@@ -407,7 +375,7 @@ export function AcademicFestLanding() {
               <div className="space-y-3 flex-1">
                 <div className="flex items-center gap-2">
                   <h3 className="text-xl sm:text-2xl font-extrabold text-white">
-                    Important Registration &amp; Verification Notice
+                    Registration &amp; Verification Policy
                   </h3>
                   <span className="hidden sm:inline-flex rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-bold text-yellow-300 border border-amber-400/30">
                     Policy
@@ -415,7 +383,7 @@ export function AcademicFestLanding() {
                 </div>
 
                 <p className="text-sm sm:text-base text-slate-200 leading-relaxed">
-                  After verifying your information, the organizing team will process your registration. The team reserves the right to accept or reject any application without stating a reason. Seats are limited. Only accepted students will receive a confirmation message on their provided phone number.
+                  After verifying information, the organizing team processes the registered participants. The team reserves the right to accept or reject any application without stating a reason. Seats are limited. Only accepted students will receive a confirmation message on their provided phone number.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
@@ -440,12 +408,11 @@ export function AcademicFestLanding() {
           <div className="mt-14 text-center">
             <Button
               size="lg"
-              disabled={isClosed}
-              onClick={() => navigate("event/hsc27-af/registration")}
-              className="rounded-full bg-yellow-400 px-10 py-6 text-base font-extrabold text-slate-950 hover:bg-yellow-300 shadow-xl shadow-yellow-400/20"
+              onClick={() => navigate("my-registration")}
+              className="rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 px-10 py-6 text-base font-extrabold text-slate-950 hover:bg-yellow-300 shadow-xl shadow-yellow-400/20"
             >
-              Go to Registration Form
-              <ArrowRight className="ml-2 size-5" />
+              <Search className="mr-2 size-5" />
+              Check Registration Status
             </Button>
 
             <div className="mt-5 flex items-center justify-center gap-2 text-xs text-emerald-300/80 font-medium">

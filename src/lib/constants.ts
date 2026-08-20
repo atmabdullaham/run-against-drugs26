@@ -8,7 +8,7 @@ export const EVENT_CONFIG = {
   // Event date in Asia/Dhaka timezone (ISO string)
   eventDate: "2026-06-30T08:00:00+06:00",
   // Registration deadline in Asia/Dhaka timezone (ISO string)
-  registrationDeadline: "2026-08-28T23:59:59+06:00",
+  registrationDeadline: "2026-06-28T23:59:59+06:00",
   location: "Chawkbazar (Gulzar Mor), Chittagong",
   registrationFee: 100,
   bkashNumber: "01859902430",
@@ -120,7 +120,7 @@ export const HSC27_AF_CONFIG = {
   organizer: "Bangladesh Islami Chhatrashibir - Chattogram City North",
   eventDate: "2026-09-05T08:30:00+06:00",
   eventTime: "8:30 AM",
-  registrationDeadline: "2026-08-20T23:59:59+06:00",
+  registrationDeadline: "2026-08-20T00:00:00+06:00",
   location: "Chattogram Press Club, Chattogram",
   gifts: ["T-shirt", "Note Book", "Snacks"],
   seatLimitNotice: "Limited Seats. Don't Miss Out!",

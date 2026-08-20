@@ -43,7 +43,7 @@ export function Footer() {
                 className="text-sm text-slate-300 hover:text-emerald-400 transition-colors text-left flex items-center gap-1.5"
               >
                 <span>✨ HSC&apos;27 Academic Fest</span>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold">ACTIVE</span>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">5TH SEP</span>
               </button>
               <button
                 onClick={() => navigate("event/run26-agains-drugs")}
@@ -88,10 +88,10 @@ export function Footer() {
             © {new Date().getFullYear()} Bangladesh Islami Chhatrashibir - Chattogram City North. All rights reserved.
           </p>
           <Button
-            onClick={() => navigate("event/hsc27-af/registration")}
+            onClick={() => navigate("my-registration")}
             className="bg-gradient-to-r from-amber-400 to-yellow-500 font-bold text-slate-950 hover:bg-yellow-300 rounded-full px-6 text-xs"
           >
-            Register for HSC&apos;27 Fest
+            Check Registration Status
           </Button>
         </div>
       </div>

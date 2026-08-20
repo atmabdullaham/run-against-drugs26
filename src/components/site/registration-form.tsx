@@ -330,31 +330,52 @@ export function RegistrationForm() {
 
   if (isClosed) {
     return (
-      <div className="w-full max-w-2xl mx-auto pb-12 px-4 sm:px-6">
-        <Card className="border-brand-red/30 bg-card shadow-lg text-center overflow-hidden relative">
-          <div aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-brand-red to-brand-orange" />
-          <CardHeader className="pt-8 pb-4 flex flex-col items-center">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-brand-red/10 mb-4 animate-pulse">
-              <Clock className="w-8 h-8 text-brand-red" />
+      <div className="w-full max-w-2xl mx-auto pb-16 pt-6 px-4 sm:px-6">
+        <Card className="border-red-500/30 bg-card shadow-2xl text-center overflow-hidden relative rounded-3xl">
+          <div aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-red-500 to-orange-500" />
+          <CardHeader className="pt-10 pb-4 flex flex-col items-center">
+            <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 mb-4 text-red-500">
+              <Clock className="w-8 h-8" />
             </div>
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-gradient-navy">
-              Registration Closed
+            <Badge variant="outline" className="mb-2 border-red-500/40 text-red-500 bg-red-50 font-semibold dark:bg-red-950/30">
+              🔴 REGISTRATION CLOSED • ARCHIVED EVENT
+            </Badge>
+            <CardTitle className="text-2xl sm:text-3xl font-extrabold text-gradient-navy">
+              Registration Has Closed
             </CardTitle>
             <CardDescription className="text-sm sm:text-base mt-2 max-w-md mx-auto">
-              Registration for the {EVENT_CONFIG.name} is now closed. Thank you to everyone who registered!
+              Registration for the {EVENT_CONFIG.name} is now officially closed and the event has concluded.
             </CardDescription>
           </CardHeader>
-          <CardContent className="pb-8 pt-2 flex flex-col items-center gap-4">
-            <p className="text-sm text-muted-foreground max-w-sm">
-              If you have already registered, you can verify your details and status on the &quot;My Registration&quot; page.
+          <CardContent className="pb-10 pt-2 flex flex-col items-center gap-5">
+            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+              If you have already registered, you can verify your participant ID, verification status, and details on the &quot;My Registration&quot; page.
             </p>
-            <Button
-              type="button"
-              onClick={() => navigate("my-registration")}
-              className="bg-gradient-navy text-white hover:opacity-90 shadow-navy rounded-full px-6 py-2 mt-2"
-            >
-              Check My Registration
-            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-3 w-full">
+              <Button
+                type="button"
+                onClick={() => navigate("my-registration")}
+                className="bg-gradient-navy text-white hover:opacity-90 shadow-navy rounded-full px-6 py-2.5 font-bold"
+              >
+                Check My Registration Status
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("event/run26-agains-drugs")}
+                className="rounded-full px-6 py-2.5 font-semibold"
+              >
+                View Event Archive
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate("home")}
+                className="rounded-full px-6 py-2.5 text-muted-foreground hover:text-foreground"
+              >
+                Portal Home
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

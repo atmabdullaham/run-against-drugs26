@@ -278,19 +278,49 @@ export function AcademicFestRegistrationForm() {
 
   if (isClosed) {
     return (
-      <div className="mx-auto max-w-xl px-4 py-16 text-center">
-        <Card className="border-amber-500/30 bg-slate-900 text-white">
-          <CardHeader>
-            <Clock className="mx-auto size-12 text-amber-400" />
-            <CardTitle className="mt-2 text-2xl">Registration Closed</CardTitle>
-            <CardDescription className="text-slate-400">
-              Registration for the HSC&apos;27 Academic Fest ended on 20th August 2026.
+      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
+        <Card className="border-amber-500/40 bg-slate-900/95 text-white shadow-2xl rounded-3xl overflow-hidden backdrop-blur-md">
+          <div className="h-1.5 w-full bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-400" />
+          <CardHeader className="pt-10 pb-4 flex flex-col items-center">
+            <div className="mx-auto mb-3 flex size-16 items-center justify-center rounded-2xl bg-amber-500/20 text-yellow-400 border border-amber-500/30">
+              <Clock className="size-8 text-amber-400" />
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-950/40 px-3.5 py-1 text-xs font-bold text-amber-300 mb-2">
+              🔴 REGISTRATION CLOSED • EVENT ON 5TH SEPT 2026
+            </div>
+            <CardTitle className="text-2xl sm:text-3xl font-extrabold text-white">
+              Registration Has Closed
+            </CardTitle>
+            <CardDescription className="text-slate-300 text-sm sm:text-base mt-2 max-w-md mx-auto leading-relaxed">
+              Registration for the <strong className="text-yellow-300">HSC&apos;27 Academic Fest</strong> has officially ended. Thank you to all who applied!
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button onClick={() => navigate("event/hsc27-af")} variant="outline" className="text-slate-900 border-white bg-white hover:bg-slate-200">
-              <ArrowLeft className="mr-2 size-4" /> Back to Event Page
-            </Button>
+          <CardContent className="pb-10 pt-2 flex flex-col items-center gap-5">
+            <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
+              Submitted applications are currently being verified. Selected participants will receive a confirmation SMS. You can look up your registration status below.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3 w-full">
+              <Button
+                onClick={() => navigate("my-registration")}
+                className="bg-gradient-to-r from-yellow-400 to-amber-500 hover:bg-yellow-300 text-slate-950 font-bold rounded-full px-6 py-2.5 shadow-lg shadow-yellow-500/20"
+              >
+                Check My Registration Status
+              </Button>
+              <Button
+                onClick={() => navigate("event/hsc27-af")}
+                variant="outline"
+                className="rounded-full border-slate-700 bg-slate-950 text-white hover:bg-slate-800 px-6 py-2.5"
+              >
+                <ArrowLeft className="mr-2 size-4" /> Back to Event Details
+              </Button>
+              <Button
+                onClick={() => navigate("home")}
+                variant="ghost"
+                className="rounded-full text-slate-400 hover:text-white px-6 py-2.5"
+              >
+                Portal Home
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

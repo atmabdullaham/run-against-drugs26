@@ -297,12 +297,12 @@ export function MyRegistration() {
                   <p className="mt-2 text-sm text-slate-300">
                     No record found for &quot;<span className="font-semibold text-amber-400">{result.term}</span>&quot; in HSC&apos;27 Academic Fest.
                   </p>
-                  <div className="mt-6 flex justify-center gap-3">
+                  <div className="mt-6 flex flex-wrap justify-center gap-3">
                     <Button
-                      onClick={() => navigate("event/hsc27-af/registration")}
+                      onClick={() => navigate("event/hsc27-af")}
                       className="bg-amber-400 font-bold text-slate-950 hover:bg-amber-300"
                     >
-                      Register for HSC&apos;27 Fest
+                      View HSC&apos;27 Fest Details
                     </Button>
                     <Button variant="outline" onClick={handleReset} className="border-slate-700 text-white hover:bg-slate-800">
                       Try Another Number

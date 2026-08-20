@@ -80,7 +80,7 @@ export function PortalHomePage() {
                 onClick={() => navigate("event/hsc27-af")}
                 className="rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-8 py-6 text-base font-bold text-slate-950 shadow-lg shadow-emerald-500/20 hover:from-emerald-400 hover:to-teal-400"
               >
-                Featured Event: HSC&apos;27 Fest
+                HSC&apos;27 Academic Fest
                 <ArrowRight className="ml-2 size-5" />
               </Button>
 
@@ -106,31 +106,31 @@ export function PortalHomePage() {
               Organized Events
             </h2>
             <p className="mt-2 text-sm text-slate-400 sm:text-base">
-              Select an event below to view complete details, schedules, and registration options.
+              Select an event below to view complete details, schedules, and event updates.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            {/* Event 1: HSC'27 Academic Fest (Active) */}
-            <Card className="group relative overflow-hidden border-emerald-500/40 bg-slate-900/90 text-white shadow-2xl transition-all duration-300 hover:border-emerald-400 hover:shadow-emerald-500/10">
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-yellow-400 via-emerald-400 to-teal-400" />
+            {/* Event 1: HSC'27 Academic Fest (Upcoming / Registration Closed) */}
+            <Card className="group relative overflow-hidden border-amber-500/40 bg-slate-900/90 text-white shadow-2xl transition-all duration-300 hover:border-amber-400 hover:shadow-amber-500/10">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-400" />
               <CardContent className="p-8">
                 <div className="flex items-center justify-between mb-4">
-                  <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 px-3 py-1 font-semibold">
-                    🟢 ACTIVE REGISTRATION
+                  <Badge variant="outline" className="border-amber-500/40 text-amber-300 bg-amber-950/30 px-3 py-1 font-semibold">
+                    🔴 REGISTRATION CLOSED
                   </Badge>
-                  <span className="text-xs text-amber-400 font-mono font-semibold">Reg Deadline: 20th Aug</span>
+                  <span className="text-xs text-amber-400 font-mono font-semibold">Event: 5th Sep 2026</span>
                 </div>
 
-                <h3 className="text-2xl font-extrabold text-white group-hover:text-emerald-300 transition-colors">
+                <h3 className="text-2xl font-extrabold text-white group-hover:text-amber-300 transition-colors">
                   {HSC27_AF_CONFIG.name}
                 </h3>
-                <p className="mt-1 text-xs text-emerald-400 font-medium">
+                <p className="mt-1 text-xs text-amber-400 font-medium">
                   {HSC27_AF_CONFIG.tagline}
                 </p>
 
                 <p className="mt-4 text-sm text-slate-300 leading-relaxed">
-                  Honoring academic brilliant achievers of HSC 2027 batch in Chattogram. Special gift hampers (T-shirt, Notebook, Snacks) included for participants.
+                  Honoring academic brilliant achievers of HSC 2027 batch in Chattogram. Special gift hampers (T-shirt, Notebook, Snacks) included for accepted participants.
                 </p>
 
                 <div className="mt-6 space-y-2 border-t border-slate-800 pt-4 text-xs text-slate-300">
@@ -143,24 +143,24 @@ export function PortalHomePage() {
                     <span>Venue: <strong className="text-white">{HSC27_AF_CONFIG.location}</strong></span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Award className="size-4 text-teal-400" />
-                    <span>Eligibility: <strong className="text-white">Science GPA 5.00 | Arts & Commerce GPA 4.50</strong></span>
+                    <CheckCircle2 className="size-4 text-amber-400" />
+                    <span>Status: <strong className="text-amber-300">Registration Closed (Event on 5th Sep)</strong></span>
                   </div>
                 </div>
 
                 <div className="mt-8 flex items-center gap-3">
                   <Button
                     onClick={() => navigate("event/hsc27-af")}
-                    className="w-full rounded-xl bg-emerald-500 font-bold text-slate-950 hover:bg-emerald-400 shadow-md"
+                    className="w-full rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 font-bold text-slate-950 hover:bg-yellow-300 shadow-md"
                   >
-                    View Details & Register
+                    View Event Details
                     <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Event 2: Run Against Drugs 2026 (Ended) */}
+            {/* Event 2: Run Against Drugs 2026 (Archived / Ended) */}
             <Card className="group relative overflow-hidden border-slate-800 bg-slate-900/60 text-white shadow-xl transition-all duration-300 hover:border-slate-700">
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-500 to-navy" />
               <CardContent className="p-8">
